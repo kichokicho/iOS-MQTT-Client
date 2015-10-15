@@ -10,7 +10,7 @@
 #import "ADFPush.h"
 #import "AppDelegate.h"
 #include <stdlib.h>
-#import "Responder.h"
+//#import "Responder.h"
 
 @implementation ConnectViewController
 
@@ -25,14 +25,8 @@
 - (IBAction)connectPressed:(id)sender {
     // sender will always be self.testButton
     NSLog(@"%s:%d - %@", __func__, __LINE__, sender);
+    NSLog(@"button Title :%@", [[self connectButton] currentTitle]);
     
-    ///[sk]
-    
-    Responder * res = [[Responder alloc] init];
-    [[ADFPush sharedADFPush] setResponder:res];
-    
-    ///[sk]
-
     if ([[[self connectButton] currentTitle]  isEqual:@"Connect"]) {
         
         NSArray *servers = [ConnectViewController parseCommaList:self.serverInput.text];

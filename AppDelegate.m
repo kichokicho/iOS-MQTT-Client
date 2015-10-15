@@ -8,11 +8,15 @@
 
 #import "AppDelegate.h"
 #import "ADFPush.h"
+#import "Responder.h"
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    Responder * res = [[Responder alloc] init];
+    [[ADFPush sharedADFPush] setResponder:res];
+    
     self.tabBar = (UITabBarController *)self.window.rootViewController;
     return YES;
 }
