@@ -71,19 +71,19 @@
     
     ///[sk]
     
-    id TempResponder = [[ADFPush sharedADFPush] Responder];
-    NSString *TempMethord = @"connectCallBack:";
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"connectCallBack:";
     
 //    [aDFBean setMessage:@"Connected"];
     NSString *result = @"{\"status\": \"ok\",\"code\": 302200,\"message\": \"MQTT 서버에 접속이 되었습니다.\"}";
     
-    SEL sel = NSSelectorFromString(TempMethord);
-//    NSLog(@"Caller invoking method %@ \n", TempMethord);
+    SEL sel = NSSelectorFromString(tempMethord);
+//    NSLog(@"Caller invoking method %@ \n", tempMethord);
     
-    if ([TempResponder respondsToSelector:sel]) {
-        IMP imp = [TempResponder methodForSelector:sel];
+    if ([tempResponder respondsToSelector:sel]) {
+        IMP imp = [tempResponder methodForSelector:sel];
         void (*func)(id, SEL, id) = (void *) imp;
-        func(TempResponder, sel, result);
+        func(tempResponder, sel, result);
     } else {
         NSLog(@"[ADFPush] Warning : Method 'connectCallBack' not defind \n");
         return;
@@ -114,19 +114,19 @@ NSData *dataForString(NSString *text)
     NSLog(@"- invocationContext=%@  errorCode=%d  errorMessage=%@", invocationContext, errorCode, errorMessage);
     //    [[ADFPush sharedADFPush] addLogMessage:@"Failed to connect!" type:@"Action"];
     
-    id TempResponder = [[ADFPush sharedADFPush] Responder];
-    NSString *TempMethord = @"connectCallBack:";
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"connectCallBack:";
     
     //    [aDFBean setMessage:@"Connected"];
     NSString *result = @"{\"status\": \"fail\",\"code\": 302400,\"message\": \"MQTT 서버에 접속이 실패 되었습니다.\"}";
     
-    SEL sel = NSSelectorFromString(TempMethord);
-    NSLog(@"Caller invoking method %@ \n", TempMethord);
+    SEL sel = NSSelectorFromString(tempMethord);
+    NSLog(@"Caller invoking method %@ \n", tempMethord);
     
-    if ([TempResponder respondsToSelector:sel]) {
-        IMP imp = [TempResponder methodForSelector:sel];
+    if ([tempResponder respondsToSelector:sel]) {
+        IMP imp = [tempResponder methodForSelector:sel];
         void (*func)(id, SEL, id) = (void *) imp;
-        func(TempResponder, sel, result);
+        func(tempResponder, sel, result);
     } else {
         NSLog(@"[ADFPush] Warning : Method 'connectCallBack' not defind \n");
         return;
@@ -144,19 +144,19 @@ NSData *dataForString(NSString *text)
 {
 //    NSLog(@"- invocationContext=%@", invocationContext);
     
-    id TempResponder = [[ADFPush sharedADFPush] Responder];
-    NSString *TempMethord = @"disconnectCallBack:";
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"disconnectCallBack:";
     
     //    [aDFBean setMessage:@"Connected"];
     NSString *result = @"{\"status\": \"ok\",\"code\": 303200,\"message\": \"MQTT 서버에 접속종료가 완료 되었습니다.\"}";
     
-    SEL sel = NSSelectorFromString(TempMethord);
-    NSLog(@"Caller invoking method %@ \n", TempMethord);
+    SEL sel = NSSelectorFromString(tempMethord);
+    NSLog(@"Caller invoking method %@ \n", tempMethord);
     
-    if ([TempResponder respondsToSelector:sel]) {
-        IMP imp = [TempResponder methodForSelector:sel];
+    if ([tempResponder respondsToSelector:sel]) {
+        IMP imp = [tempResponder methodForSelector:sel];
         void (*func)(id, SEL, id) = (void *) imp;
-        func(TempResponder, sel, result);
+        func(tempResponder, sel, result);
     } else {
         NSLog(@"[ADFPush] Warning : Method 'disconnectCallBack' not defind \n");
         return;
@@ -172,18 +172,18 @@ NSData *dataForString(NSString *text)
     NSLog(@"- invocationContext=%@  errorCode=%d  errorMessage=%@", invocationContext, errorCode, errorMessage);
     //    [[ADFPush sharedADFPush] addLogMessage:@"Failed to disconnect!" type:@"Action"];
     
-    id TempResponder = [[ADFPush sharedADFPush] Responder];
-    NSString *TempMethord = @"disconnectCallBack:";
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"disconnectCallBack:";
     
     //    [aDFBean setMessage:@"Connected"];
     NSString *result = @"{\"status\": \"fail\",\"code\": 303400,\"message\": \"MQTT 서버에 접속종료가 실패되었습니다\"}";
     
-    SEL sel = NSSelectorFromString(TempMethord);
+    SEL sel = NSSelectorFromString(tempMethord);
     
-    if ([TempResponder respondsToSelector:sel]) {
-        IMP imp = [TempResponder methodForSelector:sel];
+    if ([tempResponder respondsToSelector:sel]) {
+        IMP imp = [tempResponder methodForSelector:sel];
         void (*func)(id, SEL, id) = (void *) imp;
-        func(TempResponder, sel, result);
+        func(tempResponder, sel, result);
     } else {
         NSLog(@"[ADFPush] Warning : Method 'disconnectCallBack' not defind \n");
         return;
@@ -215,37 +215,58 @@ NSData *dataForString(NSString *text)
 @implementation SubscribeCallbacks
 - (void) onSuccess:(NSObject*) invocationContext
 {
-    NSLog(@"- invocationContext=%@", invocationContext);
-    //    NSLog(@"SubscribeCallbacks - onSuccess");
-    //    NSString *topic = (NSString *)invocationContext;
-    //    [[ADFPush sharedADFPush] addLogMessage:[NSString stringWithFormat:@"Subscribed to %@", topic] type:@"Action"];
+//    NSLog(@"- invocationContext=%@", invocationContext);
+
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"subscribeCallBack:";
     
-    //    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-    //    [appDelegate reloadSubscriptionList];
+    NSMutableString * resultMu;
+    resultMu = [[NSMutableString alloc]init];
     
+    [resultMu appendFormat:@"{\"status\": \"ok\",\"code\": 305200,\"data\" : {\"topic\" : \"%@\"}, \"message\": \"구독신청이 완료되었습니다\"}",invocationContext];
+    NSString * result = resultMu;
     
-    QueueFile  *queueFile = [[ADFPush sharedADFPush] queueFile];
-    
-    NSLog(@"QueueTest Length1 : %d", [queueFile size]);
-    
-    [queueFile add:dataForString(@"foo")];
 
     
-//    if ([queueFile size] > 0) {
-//        NSString *queMsg = [NSString stringWithUTF8String:[[queueFile peek] bytes]];
-//        
-//        NSLog(@"QueueTest msg : %@", queMsg);
-//        
-//        [queueFile remove];
-//    }
+    SEL sel = NSSelectorFromString(tempMethord);
+    NSLog(@"Caller invoking method %@ \n", tempMethord);
     
-    
-    NSLog(@"QueueTest Length2 : %d", [queueFile size]);
+    if ([tempResponder respondsToSelector:sel]) {
+        IMP imp = [tempResponder methodForSelector:sel];
+        void (*func)(id, SEL, id) = (void *) imp;
+        func(tempResponder, sel, result);
+    } else {
+        NSLog(@"[ADFPush] Warning : Method 'subscribeCallBack' not defind \n");
+        return;
+    }
     
 }
 - (void) onFailure:(NSObject*) invocationContext errorCode:(int) errorCode errorMessage:(NSString*) errorMessage
 {
-    NSLog(@"SubscribeCallbacks - onFailure");
+     NSLog(@"[ADFPush] SubscribeCallbacks - invocationContext=%@  errorCode=%d  errorMessage=%@", invocationContext, errorCode, errorMessage);
+    
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"subscribeCallBack:";
+    
+    NSMutableString * resultMu;
+    resultMu = [[NSMutableString alloc]init];
+    
+    [resultMu appendFormat:@"{\"status\": \"fail\",\"code\": 305400,\"data\" : {\"topic\" : \"%@\"}, \"message\": \"구독신청이 실패했습니다\"}",invocationContext];
+    NSString * result = resultMu;
+    
+    
+    
+    SEL sel = NSSelectorFromString(tempMethord);
+    NSLog(@"Caller invoking method %@ \n", tempMethord);
+    
+    if ([tempResponder respondsToSelector:sel]) {
+        IMP imp = [tempResponder methodForSelector:sel];
+        void (*func)(id, SEL, id) = (void *) imp;
+        func(tempResponder, sel, result);
+    } else {
+        NSLog(@"[ADFPush] Warning : Method 'subscribeCallBack' not defind \n");
+        return;
+    }
 }
 @end
 
@@ -257,14 +278,58 @@ NSData *dataForString(NSString *text)
 @implementation UnsubscribeCallbacks
 - (void) onSuccess:(NSObject*) invocationContext
 {
-    NSLog(@"- invocationContext=%@", invocationContext);
-    //    NSString *topic = (NSString *)invocationContext;
-    //    [[ADFPush sharedADFPush] addLogMessage:[NSString stringWithFormat:@"Unsubscribed to %@", topic] type:@"Action"];
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"unsubscribeCallBack:";
+    
+    NSMutableString * resultMu;
+    resultMu = [[NSMutableString alloc]init];
+    
+    [resultMu appendFormat:@"{\"status\": \"ok\",\"code\": 306200,\"data\" : {\"topic\" : \"%@\"}, \"message\": \"구독해제가 완료되었습니다\"}",invocationContext];
+    NSString * result = resultMu;
+    
+    
+    
+    SEL sel = NSSelectorFromString(tempMethord);
+   
+    if ([tempResponder respondsToSelector:sel]) {
+        IMP imp = [tempResponder methodForSelector:sel];
+        void (*func)(id, SEL, id) = (void *) imp;
+        func(tempResponder, sel, result);
+    } else {
+        NSLog(@"[ADFPush] Warning : Method 'unsubscribeCallBack' not defind \n");
+        return;
+    }
 }
 - (void) onFailure:(NSObject*) invocationContext errorCode:(int) errorCode errorMessage:(NSString*) errorMessage
 {
-    NSLog(@"- invocationContext=%@  errorCode=%d  errorMessage=%@", invocationContext, errorCode, errorMessage);
+    NSLog(@"[ADFPush] UnsubscribeCallbacks - invocationContext=%@  errorCode=%d  errorMessage=%@", invocationContext, errorCode, errorMessage);
+    
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"subscribeCallBack:";
+    
+    NSMutableString * resultMu;
+    resultMu = [[NSMutableString alloc]init];
+    
+    [resultMu appendFormat:@"{\"status\": \"fail\",\"code\": 306400,\"data\" : {\"topic\" : \"%@\"}, \"message\": \"구독해제가 실패했습니다\"}",invocationContext];
+    NSString * result = resultMu;
+    
+    
+    
+    SEL sel = NSSelectorFromString(tempMethord);
+    
+    if ([tempResponder respondsToSelector:sel]) {
+        IMP imp = [tempResponder methodForSelector:sel];
+        void (*func)(id, SEL, id) = (void *) imp;
+        func(tempResponder, sel, result);
+    } else {
+        NSLog(@"[ADFPush] Warning : Method 'unsubscribeCallBack' not defind \n");
+        return;
+    }
 }
+
+
+
+
 @end
 
 @interface GeneralCallbacks : NSObject <MqttCallbacks>
@@ -298,25 +363,25 @@ NSData *dataForString(NSString *text)
     
     ///[sk]
     
-    id TempResponder = [[ADFPush sharedADFPush] Responder];
-    NSString *TempMethord = @"onMessageArrivedCallBack:";
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"onMessageArrivedCallBack:";
     
-    SEL sel = NSSelectorFromString(TempMethord);
-    NSLog(@"Caller invoking method %@ \n", TempMethord);
-//    [TempResponder performSelector: sel withObject: logStr];
+    SEL sel = NSSelectorFromString(tempMethord);
+    NSLog(@"Caller invoking method %@ \n", tempMethord);
+//    [tempResponder performSelector: sel withObject: logStr];
     
-    if ([TempResponder respondsToSelector:sel]) {
+    if ([tempResponder respondsToSelector:sel]) {
 //        NSLog(@" SEL OK \n");
-        IMP imp = [TempResponder methodForSelector:sel];
+        IMP imp = [tempResponder methodForSelector:sel];
         void (*func)(id, SEL, id) = (void *) imp;
-        func(TempResponder, sel, logStr);
+        func(tempResponder, sel, logStr);
     } else {
         NSLog(@"[ADFPush] Warning : Method 'onMessageArrivedCallBack' not defind \n");
         return;
     }
     
     
-    QueueFile  *queueFile = [[ADFPush sharedADFPush] queueFile];
+    QueueFile  *queueFile = [[ADFPush sharedADFPush] jobQF];
     
     NSLog(@"QueueTest Length1 : %d", [queueFile size]);
     [queueFile add:dataForString(logStr)];
@@ -580,22 +645,17 @@ static float JOBINTERVAL = 10.0f;
         self.clientId = nil;
         self.userID = nil;
         self.Responder = nil;
-//        self.pDB = [[PushDataBase alloc]init];
         self.client.callbacks = [[GeneralCallbacks alloc] init];
-        //        self.logMessages = [[NSMutableArray alloc] init];
-//        self.SubscriptionData = [[NSMutableArray alloc] init];
-        //        self.pWebView = [UIWebView alloc];
-//        self.webViewLoadFinish = FALSE;
-//        self.apnsToken = nil;
-//        self.mqttConnReset = FALSE;
-//        self.localNoti = TRUE;
+
         
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
                                                              NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths objectAtIndex:0];
         NSString *filePath =
-        [documentsDirectory stringByAppendingPathComponent:@"QueueFile.test"];
-        self.queueFile = [QueueFile queueFileWithPath:filePath];
+        [documentsDirectory stringByAppendingPathComponent:@"job.q"];
+        self.jobQF = [QueueFile queueFileWithPath:filePath];
+        filePath = [documentsDirectory stringByAppendingPathComponent:@"jobLog.q"];
+        self.jobLogQF = [QueueFile queueFileWithPath:filePath];
         self.messageADF = nil;
         
         
@@ -610,45 +670,13 @@ static float JOBINTERVAL = 10.0f;
     return self;
 }
 
-//- (void)connectWithHosts:(NSArray *)hosts ports:(NSArray *)ports clientId:(NSString *)clientId cleanSession:(BOOL)cleanSession
-//{
-//    /*NSUInteger currentIndex = 0;
-//     for (id obj in self.subscriptionData) {
-//     NSString *topicFilter = ((Subscription *)obj).topicFilter;
-//     [client unsubscribe:topicFilter invocationContext:topicFilter onCompletion:[[UnsubscribeCallbacks alloc] init]];
-//     currentIndex++;
-//     }
-//     [[self subscriptionData] removeAllObjects];
-//     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-//     [appDelegate reloadSubscriptionList];*/
-//    
-//    client = [client initWithHosts:hosts ports:ports clientId:clientId];
-//    ConnectOptions *opts = [[ConnectOptions alloc] init];
-//    opts.timeout = 3600;
-//    opts.cleanSession = cleanSession;
-//    
-////    SSLOptions *ssloti = [[SSLOptions alloc] init];
-////    ssloti.enableServerCertAuth = FALSE;
-////    opts.sslProperties = ssloti;
-//    
-//    
-//    NSLog(@"host=%@, port=%@, clientId=%@, cleanSession=%@", hosts, ports, clientId,  (cleanSession)? @"true" : @"false");
-//    [client connectWithOptions:opts invocationContext:self onCompletion:[[ConnectCallbacks alloc] init]];
-//}
 
-
-- (void)connectMQTT:(NSArray *)hosts ports:(NSArray *)ports clientId:(NSString *)clientId cleanSession:(BOOL)cleanSession
+- (void)connectMQTT:(NSArray *)hosts ports:(NSArray *)ports cleanSession:(BOOL)cleanSession
 {
-    /*NSUInteger currentIndex = 0;
-     for (id obj in self.subscriptionData) {
-     NSString *topicFilter = ((Subscription *)obj).topicFilter;
-     [client unsubscribe:topicFilter invocationContext:topicFilter onCompletion:[[UnsubscribeCallbacks alloc] init]];
-     currentIndex++;
-     }
-     [[self subscriptionData] removeAllObjects];
-     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-     [appDelegate reloadSubscriptionList];*/
+    // Job Logging
+    [self addJobLog:@"connectMQTT" param1:hosts[1] param2:ports[1] param3:(cleanSession)? @"true" : @"false"];
     
+    NSString * clientId = [[ADFPush sharedADFPush] getTokenMQTT];
     client = [client initWithHosts:hosts ports:ports clientId:clientId];
     ConnectOptions *opts = [[ConnectOptions alloc] init];
     opts.timeout = 3600;
@@ -665,19 +693,23 @@ static float JOBINTERVAL = 10.0f;
 
 
 
-- (void)disconnectWithTimeout:(int)timeout {
+- (void)disconnectMQTT:(int)timeout {
+    
+    // Job Logging
+    [self addJobLog:@"disconnectMQTT" param1:[NSString stringWithFormat: @"%d", timeout]  param2:@"" param3:@""];
+    
     DisconnectOptions *opts = [[DisconnectOptions alloc] init];
     [opts setTimeout:timeout];
-    
-//    [[self subscriptionData] removeAllObjects];
-    //    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-    //    [appDelegate reloadSubscriptionList];
     
     [client disconnectWithOptions:opts invocationContext:self onCompletion:[[DisConnectCallbacks alloc] init]];
 }
 
 - (void)publish:(NSString *)topic payload:(NSString *)payload qos:(int)qos retained:(BOOL)retained
 {
+    
+    // Job Logging
+    [self addJobLog:@"publish" param1:topic  param2:[NSString stringWithFormat: @"%d", qos] param3:(retained)? @"true" : @"false"];
+    
     NSLog(@"=========== playload1 :%@", payload);
     
     NSString *retainedStr = retained ? @" [retained]" : @"";
@@ -693,50 +725,33 @@ static float JOBINTERVAL = 10.0f;
     [client send:msg invocationContext:@"test" onCompletion:[[PublishCallbacks alloc] init]];
 }
 
-- (void)subscribe:(NSString *)topicFilter qos:(int)qos
+- (void)subscribeMQTT:(NSString *)topicFilter qos:(int)qos
 {
+    // Job Logging
+    [self addJobLog:@"subscribeMQTT" param1:topicFilter param2:[NSString stringWithFormat: @"%d", qos]   param3:@""];
+    
     NSLog(@"topicFilter=%@, qos=%d", topicFilter, qos);
     NSLog(@"=====  subscribe start");
+    
     
     [client subscribe:topicFilter qos:qos invocationContext:topicFilter onCompletion:[[SubscribeCallbacks alloc] init]];
     
     NSLog(@"=====  subscribe end");
     
-    //    Subscription *sub = [[Subscription alloc] init];
-    //    sub.topicFilter = topicFilter;
-    //    sub.qos = qos;
-    //    [self.subscriptionData addObject:sub];
-    //
-    //    NSLog(@"sue1 : %lu",(unsigned long)self.subscriptionData.count);
-    //
-    //    NSMutableArray *temp = [[ADFPush sharedADFPush] subscriptionData];
-    //    [temp addObject:sub];
-    //    NSLog(@"sue2 : %lu",(unsigned long)self.subscriptionData.count);
-    //    NSLog(@"sue3 : %lu",(unsigned long)temp.count);
-    //    [[ADFPush sharedADFPush] setSubscriptionData:temp];
-    //    temp = [[ADFPush sharedADFPush] subscriptionData];
-    //    NSLog(@"sue4 : %lu",(unsigned long)temp.count);
-    
 }
 
-- (void)unsubscribe:(NSString *)topicFilter
+- (void)unsubscribeMQTT:(NSString *)topicFilter
 {
+    // Job Logging
+    [self addJobLog:@"unsubscribeMQTT" param1:topicFilter  param2:@"" param3:@""];
+    
     NSLog(@"topicFilter=%@", topicFilter);
     [client unsubscribe:topicFilter invocationContext:topicFilter onCompletion:[[UnsubscribeCallbacks alloc] init]];
-    
-//    NSUInteger currentIndex = 0;
-//    for (id obj in self.subscriptionData) {
-//        if ([((Subscription *)obj).topicFilter isEqualToString:topicFilter]) {
-//            [self.subscriptionData removeObjectAtIndex:currentIndex];
-//            break;
-//        }
-//        currentIndex++;
-//    }
 }
 
 -(void)jobAgent {
     
-    QueueFile  *queueFile = [[ADFPush sharedADFPush] queueFile];
+    QueueFile  *queueFile = [[ADFPush sharedADFPush] jobQF];
     
     int qSize = [queueFile size];
     for (int i=0; i < qSize; i++) {
@@ -769,6 +784,9 @@ static float JOBINTERVAL = 10.0f;
 }
 
 - (NSString *)registerToken:(NSString *)token{
+    
+    // Job Logging
+    [self addJobLog:@"unsubscribeMQTT" param1:token  param2:@"" param3:@""];
     
      NSString * result = nil;
     
@@ -815,6 +833,10 @@ static float JOBINTERVAL = 10.0f;
 }
 
 - (NSString *)getTokenMQTT{
+    
+    // Job Logging
+    [self addJobLog:@"getTokenMQTT" param1:@""  param2:@"" param3:@""];
+    
     NSString * result;
     
     @try {
@@ -854,6 +876,10 @@ static float JOBINTERVAL = 10.0f;
 }
 
 - (NSString *)connectStateMQTT{
+    
+    // Job Logging
+    [self addJobLog:@"connectStateMQTT" param1:@""  param2:@"" param3:@""];
+    
     NSString * result;
     
     @try {
@@ -879,9 +905,62 @@ static float JOBINTERVAL = 10.0f;
     @finally {
         
     }
-    
-    
     return result;
+}
+
+- (NSString *)cleanJobQueue{
+    // Job Logging
+    [self addJobLog:@"cleanJobQueue" param1:@""  param2:@"" param3:@""];
+    
+    NSString * result;
+    
+    @try {
+        
+        QueueFile  * jobQ = [ [ADFPush sharedADFPush] jobQF];
+        
+        [jobQ clear];
+        
+        result = @"{\"status\": \"ok\",\"code\": 308200,\"message\": \"작업큐 초기화가 완료되었습니다\"}";
+        
+        
+    }
+    @catch (NSException *exception) {
+        NSLog(@"[ADFError] NSException: %@", exception);
+        //            result = @"{\"status\": \"fail\",\"code\": 301400,\"message\": \"토큰등록이 실패되었습니다\"}";
+        NSMutableString * resultMu;
+        resultMu = [[NSMutableString alloc]init];
+        
+        [resultMu appendFormat:@"{\"status\": \"fail\",\"code\": 308500,\"message\": \"%@\"}",exception];
+        result = resultMu;
+    }
+    @finally {
+        
+    }
+    return result;
+}
+
+- (void) addJobLog:(NSString *)jobName param1:(NSString *) param1 param2:(NSString *) param2 param3:(NSString *) param3{
+    
+    @try {
+        NSMutableString * resultMu;
+        resultMu = [[NSMutableString alloc]init];
+        NSDate *now = [NSDate date]; //현재 날짜로 객체 생성
+        NSDateFormatter *dateFormat=[[NSDateFormatter alloc] init];
+        [dateFormat setDateFormat:@"yyyy-MM-dd hh:mm:ss:SS"];
+        NSString *dateString = [dateFormat stringFromDate:now];
+        
+        [resultMu appendFormat:@"{\"date\": \"%@\",\"jobName\": \"%@=%@=%@=%@\"}",dateString, jobName,param1,param2,param3];
+        
+        
+        QueueFile * jobLogQF = [ [ADFPush sharedADFPush] jobLogQF];
+        if ([jobLogQF size] > 3000) {
+            [jobLogQF remove];
+        }
+        [jobLogQF add:dataForString(resultMu)];
+    }
+    @catch (NSException *exception) {
+        NSLog(@"[ADFError] NSException: %@", exception);
+    }
 }
 
 

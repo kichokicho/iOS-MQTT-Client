@@ -28,7 +28,7 @@
     
     NSString *topic = self.topicInput.text;
     
-    [[ADFPush sharedADFPush] subscribe:topic qos:(int)self.qos.selectedSegmentIndex];
+    [[ADFPush sharedADFPush] subscribeMQTT:topic qos:(int)self.qos.selectedSegmentIndex];
 }
 
 - (IBAction)qosSegmentChanged:(id)sender {

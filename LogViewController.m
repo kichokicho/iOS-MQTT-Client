@@ -7,7 +7,7 @@
 //
 
 #import "LogViewController.h"
-//#import "LogMessage.h"
+#import "LogMessage.h"
 #import "ADFPush.h"
 #import "AppDelegate.h"
 
@@ -69,9 +69,10 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-//    ADFLib *ADFLib = [ADFLib sharedADFLib];
-//    return [ADFLib.logMessages count];
-    return 1;
+
+    QueueFile *jobLogQF = [[ADFPush sharedADFPush] jobLogQF];
+    return [jobLogQF size];
+//    return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -79,10 +80,16 @@
     static NSString *CellIdentifier = @"LogPrototypeCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
-//    ADFLib *ADFLib = [ADFLib sharedADFLib];
+
+    QueueFile *jobLogQF = [[ADFPush sharedADFPush] jobLogQF];
+    
+    
 //    LogMessage *message = [ADFLib.logMessages objectAtIndex:indexPath.row];
-//    cell.textLabel.text = message.data;
-//    cell.detailTextLabel.text = message.timestamp;
+
+//    cell.textLabel.text = [NSString stringWithUTF8String:[[jobLogQF peek] bytes]];
+    cell.detailTextLabel.text = [NSString stringWithUTF8String:[[jobLogQF peek] bytes]];
+    [jobLogQF remove];
+    NSLog(@"size ::@%d",[jobLogQF size]);
     
 //    if ([message.type isEqualToString:@"Action"]) {
 //        [cell.imageView setImage:[UIImage imageNamed:@"glyphicons_003_user.png"]];

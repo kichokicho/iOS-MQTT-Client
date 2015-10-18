@@ -64,7 +64,7 @@
 //        }
 //        self.logView.navigationController.tabBarItem.badgeValue = badge;
 //        
-//        [self.logView.tableView reloadData];
+        [self.logView.tableView reloadData];
     });
 }
 
@@ -104,9 +104,10 @@
     NSArray *servers = [[NSArray alloc] initWithObjects:@"adflow.net", nil];
     NSArray *ports = [[NSArray alloc] initWithObjects:@"2883", nil];
     NSString *clientID = @"test1234";
+    [[ADFPush sharedADFPush] registerToken:clientID];
     
 //    [[ADFLib sharedADFLib] connectWithHosts:servers ports:ports clientId:clientID cleanSession:TRUE];
-    [[ADFPush sharedADFPush] connectMQTT:servers ports:ports clientId:clientID cleanSession:TRUE];
+    [[ADFPush sharedADFPush] connectMQTT:servers ports:ports cleanSession:TRUE];
     
     NSLog(@"mqtt connect ");
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.

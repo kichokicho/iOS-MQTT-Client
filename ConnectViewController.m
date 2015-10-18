@@ -41,7 +41,7 @@
             [[ADFPush sharedADFPush] setClientId:clientID];
         }
 //        [[ADFPush sharedADFPush] connectWithHosts:servers ports:ports clientId:clientID cleanSession:self.cleanSession.isOn];
-        [[ADFPush sharedADFPush] connectMQTT:servers ports:ports clientId:clientID cleanSession:self.cleanSession.isOn];
+        [[ADFPush sharedADFPush] connectMQTT:servers ports:ports cleanSession:self.cleanSession.isOn];
     
         AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
         [appDelegate switchToPublish];
@@ -49,7 +49,7 @@
 
         
     } else {
-        [[ADFPush sharedADFPush] disconnectWithTimeout:5];
+        [[ADFPush sharedADFPush] disconnectMQTT:5];
     }
 }
 

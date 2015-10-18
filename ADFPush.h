@@ -24,20 +24,22 @@
 
 ///[sk]
 @property (nonatomic, retain) id Responder;
-@property (nonatomic, strong) QueueFile *queueFile;
+@property (nonatomic, strong) QueueFile *jobQF;
+@property (nonatomic, strong) QueueFile *jobLogQF;
 @property (nonatomic, retain) NSString *messageADF;
 ///[sk]
 
 
 + (id)sharedADFPush;
 - (void)publish:(NSString *)topic payload:(NSString *)payload qos:(int)qos retained:(BOOL)retained;
-- (void)subscribe:(NSString *)topicFilter qos:(int)qos;
-- (void)unsubscribe:(NSString *)topicFilter;
-- (void)disconnectWithTimeout:(int)timeout;
-- (void)connectMQTT:(NSArray *)hosts ports:(NSArray *)ports clientId:(NSString *)clientId cleanSession:(BOOL)cleanSession;
+- (void)subscribeMQTT:(NSString *)topicFilter qos:(int)qos;
+- (void)unsubscribeMQTT:(NSString *)topicFilter;
+- (void)disconnectMQTT:(int)timeout;
+- (void)connectMQTT:(NSArray *)hosts ports:(NSArray *)ports cleanSession:(BOOL)cleanSession;
 - (NSString *)registerToken:(NSString *)token;
 - (NSString *)getTokenMQTT;
 - (NSString *)connectStateMQTT;
+- (NSString *)cleanJobQueue;
 
 
 
