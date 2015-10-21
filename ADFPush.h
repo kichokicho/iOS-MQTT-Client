@@ -40,6 +40,7 @@
 - (NSString *)getTokenMQTT;
 - (NSString *)connectStateMQTT;
 - (NSString *)cleanJobQueue;
+- (NSString *)getSubscriptions;
 
 
 

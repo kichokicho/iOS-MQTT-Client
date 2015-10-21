@@ -117,8 +117,15 @@ NSData *dataForString(NSString *text)
     id tempResponder = [[ADFPush sharedADFPush] Responder];
     NSString *tempMethord = @"connectCallBack:";
     
+    NSString *result = nil;
+    if (errorCode == 5) {
+        result = @"{\"status\": \"fail\",\"code\": 302405,\"message\": \"MQTT 서버에 유요하지 않은 토큰으로 접속을 시도 했습니다.\"}";
+    } else {
+        result = @"{\"status\": \"fail\",\"code\": 302400,\"message\": \"MQTT 서버에 접속이 실패 되었습니다.\"}";
+    }
+    
     //    [aDFBean setMessage:@"Connected"];
-    NSString *result = @"{\"status\": \"fail\",\"code\": 302400,\"message\": \"MQTT 서버에 접속이 실패 되었습니다.\"}";
+    
     
     SEL sel = NSSelectorFromString(tempMethord);
     NSLog(@"Caller invoking method %@ \n", tempMethord);
@@ -340,12 +347,29 @@ NSData *dataForString(NSString *text)
 @implementation GeneralCallbacks
 - (void) onConnectionLost:(NSObject*)invocationContext errorMessage:(NSString*)errorMessage
 {
-    NSLog(@"errorMessage :%@", errorMessage);
-//    [[[ADFPush sharedADFPush] subscriptionData] removeAllObjects];
-    NSLog(@"errorMessage :%@", errorMessage);
     //    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     //    [appDelegate updateConnectButton];
     //    [appDelegate reloadSubscriptionList];
+    
+    NSLog(@"- invocationContext=%@  errorMessage=%@", invocationContext, errorMessage);
+    //    [[ADFPush sharedADFPush] addLogMessage:@"Failed to disconnect!" type:@"Action"];
+    
+    id tempResponder = [[ADFPush sharedADFPush] Responder];
+    NSString *tempMethord = @"connectLostCallBack:";
+    
+    //    [aDFBean setMessage:@"Connected"];
+    NSString *result = @"{\"status\": \"fail\",\"code\": 302405,\"message\": \"MQTT 연결이 끊어졌습니다\"}";
+    
+    SEL sel = NSSelectorFromString(tempMethord);
+    
+    if ([tempResponder respondsToSelector:sel]) {
+        IMP imp = [tempResponder methodForSelector:sel];
+        void (*func)(id, SEL, id) = (void *) imp;
+        func(tempResponder, sel, result);
+    } else {
+        NSLog(@"[ADFPush] Warning : Method 'connectLostCallBack' not defind \n");
+        return;
+    }
 }
 - (void) onMessageArrived:(NSObject*)invocationContext message:(MqttMessage*)msg
 {
@@ -674,17 +698,31 @@ static float JOBINTERVAL = 10.0f;
 - (void)connectMQTT:(NSArray *)hosts ports:(NSArray *)ports cleanSession:(BOOL)cleanSession
 {
     // Job Logging
-    [self addJobLog:@"connectMQTT" param1:hosts[1] param2:ports[1] param3:(cleanSession)? @"true" : @"false"];
+    [self addJobLog:@"connectMQTT" param1:hosts[0] param2:ports[0] param3:(cleanSession)? @"true" : @"false"];
     
-    NSString * clientId = [[ADFPush sharedADFPush] getTokenMQTT];
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
+                                                         NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *filePath =
+    [documentsDirectory stringByAppendingPathComponent:@"token.q"];
+    QueueFile  * tokenQ = [QueueFile queueFileWithPath:filePath];
+    
+    NSLog(@"====== test size :: %d", [tokenQ size]);
+    
+    // token Queue read
+    NSString *clientId = [NSString stringWithUTF8String:[[tokenQ peek] bytes]];
+    
+//    NSString * clientId = [[ADFPush sharedADFPush] getTokenMQTT];
+    NSLog(@"====== test :: %@", clientId);
     client = [client initWithHosts:hosts ports:ports clientId:clientId];
     ConnectOptions *opts = [[ConnectOptions alloc] init];
     opts.timeout = 3600;
     opts.cleanSession = cleanSession;
     
-//    SSLOptions *ssloti = [[SSLOptions alloc] init];
-//    ssloti.enableServerCertAuth = FALSE;
-//    opts.sslProperties = ssloti;
+    SSLOptions *ssloti = [[SSLOptions alloc] init];
+    ssloti.enableServerCertAuth = FALSE;
+    opts.sslProperties = ssloti;
     
     
     NSLog(@"host=%@, port=%@, clientId=%@, cleanSession=%@", hosts, ports, clientId,  (cleanSession)? @"true" : @"false");
@@ -849,23 +887,13 @@ static float JOBINTERVAL = 10.0f;
         
         // token Queue read
         NSString *token = [NSString stringWithUTF8String:[[tokenQ peek] bytes]];
-        
-        NSMutableString * resultMu;
-        resultMu = [[NSMutableString alloc]init];
-        
-        [resultMu appendFormat:@"{\"status\": \"ok\",\"data\":{ \"token\":\"%@\"},\"code\": 310200,\"message\": \"토큰 가져오기가  완료 되었습니다\"}",token];
-        result = resultMu;
+        result = [NSString stringWithFormat:@"{\"status\": \"ok\",\"data\":{ \"token\":\"%@\"},\"code\": 310200,\"message\": \"토큰 가져오기가  완료 되었습니다\"}",token];
         
         
     }
     @catch (NSException *exception) {
         NSLog(@"[ADFError] NSException: %@", exception);
-
-        NSMutableString * resultMu;
-        resultMu = [[NSMutableString alloc]init];
-        
-        [resultMu appendFormat:@"{\"status\": \"fail\",\"code\": 301500,\"message\": \"%@\"}",exception];
-        result = resultMu;
+        result = [NSString stringWithFormat:@"{\"status\": \"fail\",\"code\": 301500,\"message\": \"%@\"}",exception];
     }
     @finally {
         
@@ -895,12 +923,7 @@ static float JOBINTERVAL = 10.0f;
     }
     @catch (NSException *exception) {
         NSLog(@"[ADFError] NSException: %@", exception);
-
-        NSMutableString * resultMu;
-        resultMu = [[NSMutableString alloc]init];
-        
-        [resultMu appendFormat:@"{\"status\": \"fail\",\"code\": 304500,\"message\": \"%@\"}",exception];
-        result = resultMu;
+        result = [NSString stringWithFormat:@"{\"status\": \"fail\",\"code\": 304500,\"message\": \"%@\"}",exception];
     }
     @finally {
         
@@ -926,12 +949,7 @@ static float JOBINTERVAL = 10.0f;
     }
     @catch (NSException *exception) {
         NSLog(@"[ADFError] NSException: %@", exception);
-        //            result = @"{\"status\": \"fail\",\"code\": 301400,\"message\": \"토큰등록이 실패되었습니다\"}";
-        NSMutableString * resultMu;
-        resultMu = [[NSMutableString alloc]init];
-        
-        [resultMu appendFormat:@"{\"status\": \"fail\",\"code\": 308500,\"message\": \"%@\"}",exception];
-        result = resultMu;
+        result = [NSString stringWithFormat:@"{\"status\": \"fail\",\"code\": 308500,\"message\": \"%@\"}",exception];
     }
     @finally {
         
@@ -942,26 +960,100 @@ static float JOBINTERVAL = 10.0f;
 - (void) addJobLog:(NSString *)jobName param1:(NSString *) param1 param2:(NSString *) param2 param3:(NSString *) param3{
     
     @try {
-        NSMutableString * resultMu;
-        resultMu = [[NSMutableString alloc]init];
         NSDate *now = [NSDate date]; //현재 날짜로 객체 생성
         NSDateFormatter *dateFormat=[[NSDateFormatter alloc] init];
         [dateFormat setDateFormat:@"yyyy-MM-dd hh:mm:ss:SS"];
         NSString *dateString = [dateFormat stringFromDate:now];
         
-        [resultMu appendFormat:@"{\"date\": \"%@\",\"jobName\": \"%@=%@=%@=%@\"}",dateString, jobName,param1,param2,param3];
-        
+        NSString *result = [NSString stringWithFormat:@"{\"date\": \"%@\",\"jobName\": \"%@=%@=%@=%@\"}",dateString, jobName,param1,param2,param3];
         
         QueueFile * jobLogQF = [ [ADFPush sharedADFPush] jobLogQF];
         if ([jobLogQF size] > 3000) {
             [jobLogQF remove];
         }
-        [jobLogQF add:dataForString(resultMu)];
+        [jobLogQF add:dataForString(result)];
     }
     @catch (NSException *exception) {
         NSLog(@"[ADFError] NSException: %@", exception);
     }
 }
+
+- (NSString *)getSubscriptions{
+    
+    // Job Logging
+    [self addJobLog:@"getTokenMQTT" param1:@""  param2:@"" param3:@""];
+    
+    NSString * result;
+    
+//    NSURL *url = [[NSURL alloc] initWithString:@"https://14.63.217.141:8081/v1/pms/adm/cmm/auth"];
+//    NSURL *url = [[NSURL alloc] initWithString:@"http://127.0.0.1:8080/v1/pms/adm/cmm/auth"];
+//    NSURL *url = [[NSURL alloc] initWithString:@"https://easy-message.co.kr/v1/pms/adm/cmm/auth"];
+    
+    NSString *host = @"http://112.223.76.75:18080";
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
+                                                         NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *filePath =
+    [documentsDirectory stringByAppendingPathComponent:@"token.q"];
+    QueueFile  * tokenQ = [QueueFile queueFileWithPath:filePath];
+    
+    // token Queue read
+    NSString *token = [NSString stringWithUTF8String:[[tokenQ peek] bytes]];
+    
+    NSString *urlString = [NSString stringWithFormat:@"%@/v1/token/subscriptions/%@",host,token];
+    
+    NSLog(@"urlMu :%@", urlString);
+    
+    NSURL *url = [[NSURL alloc] initWithString:urlString];
+    
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+
+    [request setURL:url];
+    [request setCachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData];
+    [request setTimeoutInterval:30.0];
+    [request setHTTPMethod:@"GET"];
+    [request addValue:token forHTTPHeaderField:@"X-Application-Key"];
+    
+//    [NSURLConnection connectionWithRequest:request delegate:self];
+    NSHTTPURLResponse * response;
+    NSError * error = nil;
+    
+    NSData * data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+    
+//    int resResult = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] intValue];
+    
+    if (error != nil) {
+        NSLog(@"[ADFPush] Error on load = %@", [error localizedDescription]);
+        
+        result = [NSString stringWithFormat:@"{\"status\": \"fail\",\"code\": 307500,\"message\": \"%@\"}",[error localizedDescription]];
+        
+        return result;
+    }
+    
+    
+    //HTTP 상태를 검사한다.
+    if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
+//        NSHTTPURLResponse * httpResponse = (NSHTTPURLResponse *) response;
+        
+        if ([response statusCode] != 200) {
+            NSLog(@"[ADFPush] httpResponse statusCode  = %ld", (long)[response statusCode]);
+            
+            result = [NSString stringWithFormat:@"{\"status\": \"fail\",\"code\": 307500,\"message\": \"httpResponse statusCode  = %ld\"}",(long)[response statusCode]];
+            return result;
+        }
+    }
+    
+//     NSLog(@"[ADFPush] httpResponse statusCode  = %ld", (long)[response statusCode]);
+    
+    NSString *content = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    
+    NSLog(@" content : %@",content);
+    result = content;
+    
+    return result;
+}
+
+
 
 
 @end

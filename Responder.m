@@ -14,9 +14,15 @@
 - (void) connectCallBack: (NSString *) data ;
 {
     NSLog(@"test1: %@.\n", data);
+    NSData *jData = [data dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
     
-    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-    [appDelegate updateConnectButton];
+    if ([json[@"code"] intValue] == 302200 ) {
+        AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+        [appDelegate updateConnectButton];
+    }
+    
+    
 //    NSLog(@"test2: %d.\n", errorCode);
     
 //    return self;
