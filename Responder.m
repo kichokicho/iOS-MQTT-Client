@@ -8,6 +8,7 @@
 
 #import "Responder.h"
 #import "AppDelegate.h"
+#import "ADFPush.h"
 
 
 @implementation Responder
@@ -41,7 +42,12 @@
 - (void) onMessageArrivedCallBack: (NSString *) data
 {
     NSLog(@"Responder.my_callback called with greeting: %@.\n", data);
+    NSData *jData = [data dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
     
+    
+    NSDate *todate = [NSDate date];
+    [[ADFPush sharedADFPush] ack:false msgId:json[@"msgId"] sendDate:todate ackType:@"app"];
 //    return self;
 }
 

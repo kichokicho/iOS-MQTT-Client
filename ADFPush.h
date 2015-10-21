@@ -10,6 +10,7 @@
 #import "MqttOCClient.h"
 #import <AVFoundation/AVFoundation.h>
 #import "QueueFile.h"
+#import "PushDataBase.h"
 
 
 
@@ -20,7 +21,7 @@
 @property (nonatomic, retain) MqttClient *client;
 @property (nonatomic, retain) NSString *clientId;
 @property (nonatomic, retain) NSString *userID;
-
+@property PushDataBase *pushDataDB;
 
 ///[sk]
 @property (nonatomic, retain) id Responder;
@@ -36,6 +37,7 @@
 - (void)unsubscribeMQTT:(NSString *)topicFilter;
 - (void)disconnectMQTT:(int)timeout;
 - (void)connectMQTT:(NSArray *)hosts ports:(NSArray *)ports cleanSession:(BOOL)cleanSession;
+- (void)ack:(BOOL)serverAck msgId:(NSString *)msgId sendDate:(NSDate *)sendDate ackType:(NSString *) ackType;
 - (NSString *)registerToken:(NSString *)token;
 - (NSString *)getTokenMQTT;
 - (NSString *)connectStateMQTT;
