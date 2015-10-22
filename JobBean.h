@@ -10,14 +10,15 @@
 
 @interface JobBean : NSObject
 
-@property int id;
-@property int msgtype;
+@property int jobId;
+@property int msgType;
 @property int ack;
 @property int qos;
-@property (nonatomic, retain) NSString *msgid;
+@property (nonatomic, retain) NSString *msgId;
 @property (nonatomic, retain) NSString *content;
-@property (nonatomic, retain) NSString *contenttype;
-@property (nonatomic, retain) NSString *sender;
-@property (nonatomic, retain) NSString *serviceid;
+@property (nonatomic, retain) NSString *contentType;
+@property (nonatomic, retain) NSString *topic;
+@property (nonatomic, retain) NSString *serviceId;
+@property (nonatomic, retain) NSString *updateTime;
 
 @end

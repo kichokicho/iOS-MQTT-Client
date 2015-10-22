@@ -7,6 +7,7 @@
 //
 
 #import "ADFPush.h"
+#import "JobBean.h"
 //#import "MqttOCClient.h"
 //#import "LogMessage.h"
 //#import "Subscription.h"
@@ -288,13 +289,15 @@ NSData *dataForString(NSString *text)
 @implementation AgentAckCallbacks
 - (void) onSuccess:(NSObject *) invocationContext
 {
+    
     NSLog(@"AgentAckCallbacks - onSuccess, invocationContext:%@", invocationContext);
-
+    [[ADFPush sharedADFPush] setMessageADF:@"AckCallbackOK"];
     
 }
 - (void) onFailure:(NSObject *) invocationContext errorCode:(int) errorCode errorMessage:(NSString *)errorMessage
 {
-    NSLog(@"-AgentAckCallbacks  invocationContext=%@  errorCode=%d  errorMessage=%@", invocationContext, errorCode, errorMessage);
+    NSLog(@"AgentAckCallbacks  invocationContext=%@  errorCode=%d  errorMessage=%@", invocationContext, errorCode, errorMessage);
+    [[ADFPush sharedADFPush] setMessageADF:@"AckCallbackFail"];
 }
 @end
 
@@ -497,186 +500,101 @@ NSData *dataForString(NSString *text)
 //    NSLog(@"QueueTest Length2 : %d", [queueFile size]);
     
     PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
-    JobBean *job = [[JobBean alloc]init];
+    JobBean *job;
+    JobBean *job2;
     
     NSData *jData = [payload dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
     
-    [job setType:[json[@"msgType"] intValue]];
-    [job setContent:json[@"content"]];
-    [job setMsgid:json[@"msgId"]];
-    
-    [pushDataDB insertJob:job];
-    
-    NSDate *todate = [NSDate date];
-    [[ADFPush sharedADFPush] ack:false msgId:json[@"msgId"] sendDate:todate ackType:@"agent"];
- 
-    return;
-    
-    ///[sk]
 
+    id tempResponder;
+    NSString *tempMethord;
+    SEL sel;
+    IMP imp;
+    NSString *result;
+    NSDate *todate;
+    NSString *sDate;
+    NSDateFormatter *dataFormatter;
     
+    int msgType = [json[@"msgType"] intValue];
+    int jobId;
+    
+    switch (msgType) {
+        case 100:
+            
+            //일반 메세지 DB 저장
+            job = [[JobBean alloc]init];
+            
+            todate = [NSDate date];
+            dataFormatter = [[NSDateFormatter alloc] init];
+            [dataFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+            sDate = [dataFormatter stringFromDate: todate];
+            
+            [job setMsgType:[json[@"msgType"] intValue]];
+            [job setAck:[json[@"ack"] intValue]];
+            [job setQos:qos];
+            [job setContent:json[@"content"]];
+            [job setMsgId:json[@"msgId"]];
+            [job setContentType:json[@"contentType"]];
+            [job setTopic:topic];
+            [job setServiceId:json[@"serviceId"]];
+            [job setUpdateTime:sDate];
+            
+            jobId = [pushDataDB insertJob:job];
+            
+            if (jobId == -1) {
+                NSLog(@"[ADFPush] Warning : Method 'onMessageArrivedCallBack' not defind \n");
+                return;
+            }
+            
+            // Agent Ack send
+            if (job.ack > 0) {
+                // job Table - agent ack insert
+                job2 = [[JobBean alloc]init];
+                [job2 setMsgType:300];
+                [job2 setAck:[json[@"ack"] intValue]];
+                [job2 setQos:qos];
+                [job2 setContent:@""];
+                [job2 setMsgId:json[@"msgId"]];
+                [job2 setContentType:json[@"contentType"]];
+                [job2 setTopic:topic];
+                [job2 setServiceId:json[@"serviceId"]];
+                [job2 setUpdateTime:sDate];
+                
+                [pushDataDB insertJob:job2];
+            }
+            
+            
+            // onMessageArrivedCallBack Call
+            tempResponder = [[ADFPush sharedADFPush] Responder];
+            tempMethord = @"onMessageArrivedCallBack:";
+            
+            sel = NSSelectorFromString(tempMethord);
+            NSLog(@"Caller invoking method %@ \n", tempMethord);
+            //    [tempResponder performSelector: sel withObject: logStr];
+            
+            if ([tempResponder respondsToSelector:sel]) {
+                //        NSLog(@" SEL OK \n");
+                imp = [tempResponder methodForSelector:sel];
+                void (*func)(id, SEL, id) = (void *) imp;
+                
+                result = [NSString stringWithFormat:@"{\"content\": \"%@\",\"msgId\":\"%@\",\"contentType\":\"%@\",\"topic\":\"%@\",\"qos\":%d,\"jobId\":%d}",job.content,job.msgId, job.contentType, job.topic, job.qos, jobId];
+                
+                func(tempResponder, sel, result);
+            } else {
+                NSLog(@"[ADFPush] Warning : Method 'onMessageArrivedCallBack' not defind \n");
+                return;
+            }
+            
+            break;
+            
+        default:
+            [[ADFPush sharedADFPush] addJobLog:@"JobError" param1:payload param2:@"" param3:@""];
+            break;
+    }
 
-    //    [[ADFPush sharedADFPush] addLogMessage:logStr type:@"Subscribe"];
-    
-//    JsonUtil *jUtil = [[JsonUtil alloc]init];
-    NSDictionary *dContent;
-//    MappingJson *mJson = [[MappingJson alloc]init];
-    NSString *userid = [[ADFPush sharedADFPush] userID];
-//    MessageBean *messageBean = [self messageToObjectMapping:payload userID:userid];
-//    
-//    if (messageBean == NULL) {
-//        return;
-//    }
-    
-    NSMutableString *tmpMS = [[NSMutableString alloc]init];
-    //    PushDataBase *pDB = [[PushDataBase alloc]init];
-//    PushDataBase *pDB = [[ADFPush sharedADFPush] pDB];
-//    JobBean *job = [[JobBean alloc]init];
-//    NSDictionary *pushInfo;
-    //    UILocalNotification *localNotif = [[UILocalNotification alloc] init];
-    NSArray *groups;
-    NSMutableArray *subscribeList;
-//    Subscription *sub;
-    //    TopicBean *topicBean = [[TopicBean alloc]init];
-    //    UIWebView *pWebView = [[ADFPush sharedADFPush] pWebView];
-//    NSMutableString *javascriptFuntion = [[NSMutableString alloc]init];
-    NSDate *today;
-//    NSDate *dateNoti;
-    
-    NSMutableString *sendDate;
-    NSDateFormatter *formatter;
-    NSDate *pSendDate;
-    NSDate *pSendDateAddOneDay;
-    
-    
-//    @try {
-//        // Message Insert
-//        //        [pDB insertMessage:messageBean];
-//        
-//        
-//        switch (messageBean.type) {
-//            case 0: // 개인메시지
-//            case 1: // 전체메시지
-//            case 2: // 그룹메시지(계열사)
-//            case 3: // 그룹메시지(부서)
-//            case 4: // 그룹메시지(직급)
-//                
-//                today = [NSDate date];
-//                sendDate = [[NSMutableString alloc]init];
-//                [sendDate appendFormat:@"%@ +0900",messageBean.sendDate];
-//                NSLog(@"======== sendDate:  %@", sendDate);
-//                
-//                formatter = [[NSDateFormatter alloc] init];
-//                [formatter setDateFormat:@"yyyy.MM.dd HH:mm:ss Z"];
-//                
-//                pSendDate = [[NSDate alloc] init];
-//                pSendDate = [formatter dateFromString:sendDate];
-//                NSLog(@"======== pSendDate:  %@", [pSendDate description]);
-//                
-//                // sendDate + 1 Day (24 * 3600 = 86400
-//                pSendDateAddOneDay = [NSDate dateWithTimeInterval:86400 sinceDate:pSendDate];
-//                NSLog(@"======== pSendDateAddOneDay:  %@", [pSendDateAddOneDay description]);
-//                
-//                // 두 날짜 비교 Compare - 하루가 지난 메세지 skip
-//                NSComparisonResult compareResult = [today compare:pSendDateAddOneDay];
-//                if(compareResult == -1) {
-//                    
-//                    NSLog(@"=======   today < pSendDateAddOneDay");
-//                    
-//                    messageBean.read = 1;
-////                    [pDB insertMessage:messageBean];
-//                    if (messageBean.ack) {
-//                        [tmpMS appendFormat:@"{\"userID\":\"%@\",\"id\":%d}",userid, messageBean.id];
-////                        [job setType:0]; //PUBLISH
-////                        [job setTopic:@"/push/ack"];
-////                        [job setContent:tmpMS];
-//                        
-////                        [pDB insertJob:job];
-//                    }
-//                    
-//                    // WebView Load Finish Check
-////                    if (!([[ADFPush sharedADFPush] webViewLoadFinish])) {
-////                        NSLog(@"WebView가 아직 로드 되지 않았습니다.");
-////                        break;
-////                    }
-//                    
-// 
-//                    
-//                }
-//                
-//                
-//                break;
-//            case 100:
-//                // command msg
-//                // (토픽=/users/nadir93,메시지={"id":5,"ack":false,"type":1,"content":{"userID":"nadir93","groups":["dev","adflow"]}},qos=2)
-//                
-//                
-//                //기존 topic 가져와 unsubscribe 처리 - start
-//                messageBean.read = 0;
-////                [pDB insertMessage:messageBean];
-//                
-////                subscribeList = [[ADFPush sharedADFPush] subscriptionData];
-//                for (int i=0; i < subscribeList.count; i++) {
-//                    
-////                    sub = [subscribeList objectAtIndex:i];
-////                    [job setType:101]; //UNSUBSCRIBE
-////                    [job setTopic:sub.topicFilter];
-////                    [job setContent:@""];
-//                    
-////                    [pDB insertJob:job];
-//                }
-//                //기존 topic 가져와 unsubscribe 처리 - end
-//                
-//                dContent = [self jSonToObject:messageBean.content];
-//                groups = dContent[@"groups"];
-//                
-//                for (int i=0; i < groups.count; i++) {
-//                    tmpMS = [[NSMutableString alloc]init];
-//                    [tmpMS appendFormat:@"/groups/%@", [groups objectAtIndex:i]];
-////                    [job setType:100]; //SUBSCRIBE
-////                    [job setTopic:tmpMS];
-////                    [job setContent:@""];
-//                    
-////                    [pDB insertJob:job];
-//                }
-//                
-//                
-//                break;
-//                
-//            case 101:
-//                // command msg
-//                // (토픽=/users/nadir93,메시지={"id":5,"ack":false,"type":1,"content":{"userID":"nadir93","groups":["dev","adflow"]}},qos=2)
-//                messageBean.read = 0;
-////                [pDB insertMessage:messageBean];
-//                
-//                
-//                dContent = [self jSonToObject:messageBean.content];
-//                
-//                groups = dContent[@"groups"];
-//                
-//                for (int i=0; i < groups.count; i++) {
-//                    [tmpMS appendFormat:@"/groups/%@", [groups objectAtIndex:i]];
-////                    [job setType:101]; //UNSUBSCRIBE
-////                    [job setTopic:tmpMS];
-////                    [job setContent:nil];
-//                    
-////                    [pDB insertJob:job];
-//                }
-//                
-//                
-//                break;
-//                
-//            default:
-//                break;
-//        }
-//        
-//        
-//    }
-//    @catch (NSException *exception) {
-//        NSLog(@"onMessageArrived exceptionName %@, reason %@", [exception name], [exception reason]);
-//    }
 }
+
 
 - (void) onMessageDelivered:(NSObject*)invocationContext messageId:(int)msgId
 {
@@ -746,12 +664,11 @@ NSData *dataForString(NSString *text)
 
 
 
-
-
 @implementation ADFPush
 @synthesize client;
 
 static float JOBINTERVAL = 10.0f;
+
 #pragma mark Singleton Methods
 
 + (id)sharedADFPush {
@@ -800,7 +717,7 @@ static float JOBINTERVAL = 10.0f;
 - (void)connectMQTT:(NSArray *)hosts ports:(NSArray *)ports cleanSession:(BOOL)cleanSession
 {
     // Job Logging
-    [self addJobLog:@"connectMQTT" param1:hosts[0] param2:ports[0] param3:(cleanSession)? @"true" : @"false"];
+    [[ADFPush sharedADFPush] addJobLog:@"connectMQTT" param1:hosts[0] param2:ports[0] param3:(cleanSession)? @"true" : @"false"];
     
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
@@ -837,7 +754,7 @@ static float JOBINTERVAL = 10.0f;
 - (void)disconnectMQTT:(int)timeout {
     
     // Job Logging
-    [self addJobLog:@"disconnectMQTT" param1:[NSString stringWithFormat: @"%d", timeout]  param2:@"" param3:@""];
+    [[ADFPush sharedADFPush] addJobLog:@"disconnectMQTT" param1:[NSString stringWithFormat: @"%d", timeout]  param2:@"" param3:@""];
     
     DisconnectOptions *opts = [[DisconnectOptions alloc] init];
     [opts setTimeout:timeout];
@@ -849,7 +766,7 @@ static float JOBINTERVAL = 10.0f;
 {
     
     // Job Logging
-    [self addJobLog:@"publish" param1:topic  param2:[NSString stringWithFormat: @"%d", qos] param3:(retained)? @"true" : @"false"];
+    [[ADFPush sharedADFPush] addJobLog:@"publish" param1:topic  param2:[NSString stringWithFormat: @"%d", qos] param3:(retained)? @"true" : @"false"];
     
     NSLog(@"=========== playload1 :%@", payload);
     
@@ -869,7 +786,7 @@ static float JOBINTERVAL = 10.0f;
 - (void)subscribeMQTT:(NSString *)topicFilter qos:(int)qos
 {
     // Job Logging
-    [self addJobLog:@"subscribeMQTT" param1:topicFilter param2:[NSString stringWithFormat: @"%d", qos]   param3:@""];
+    [[ADFPush sharedADFPush] addJobLog:@"subscribeMQTT" param1:topicFilter param2:[NSString stringWithFormat: @"%d", qos]   param3:@""];
     
     NSLog(@"topicFilter=%@, qos=%d", topicFilter, qos);
     NSLog(@"=====  subscribe start");
@@ -884,7 +801,7 @@ static float JOBINTERVAL = 10.0f;
 - (void)unsubscribeMQTT:(NSString *)topicFilter
 {
     // Job Logging
-    [self addJobLog:@"unsubscribeMQTT" param1:topicFilter  param2:@"" param3:@""];
+    [[ADFPush sharedADFPush] addJobLog:@"unsubscribeMQTT" param1:topicFilter  param2:@"" param3:@""];
     
     NSLog(@"topicFilter=%@", topicFilter);
     [client unsubscribe:topicFilter invocationContext:topicFilter onCompletion:[[UnsubscribeCallbacks alloc] init]];
@@ -893,7 +810,7 @@ static float JOBINTERVAL = 10.0f;
 - (NSString *)registerToken:(NSString *)token{
     
     // Job Logging
-    [self addJobLog:@"unsubscribeMQTT" param1:token  param2:@"" param3:@""];
+    [[ADFPush sharedADFPush] addJobLog:@"unsubscribeMQTT" param1:token  param2:@"" param3:@""];
     
      NSString * result = nil;
     
@@ -930,6 +847,7 @@ static float JOBINTERVAL = 10.0f;
         result = @"{\"status\": \"fail\",\"code\": 301401,\"message\": \"토큰길이가 큽니다.\"}";
     }
     
+   
     
     return result;
 }
@@ -937,7 +855,7 @@ static float JOBINTERVAL = 10.0f;
 - (NSString *)getTokenMQTT{
     
     // Job Logging
-    [self addJobLog:@"getTokenMQTT" param1:@""  param2:@"" param3:@""];
+    [[ADFPush sharedADFPush] addJobLog:@"getTokenMQTT" param1:@""  param2:@"" param3:@""];
     
     NSString * result;
     
@@ -970,7 +888,7 @@ static float JOBINTERVAL = 10.0f;
 - (NSString *)connectStateMQTT{
     
     // Job Logging
-    [self addJobLog:@"connectStateMQTT" param1:@""  param2:@"" param3:@""];
+    [[ADFPush sharedADFPush] addJobLog:@"connectStateMQTT" param1:@""  param2:@"" param3:@""];
     
     NSString * result;
     
@@ -997,7 +915,7 @@ static float JOBINTERVAL = 10.0f;
 
 - (NSString *)cleanJobQueue{
     // Job Logging
-    [self addJobLog:@"cleanJobQueue" param1:@""  param2:@"" param3:@""];
+    [[ADFPush sharedADFPush] addJobLog:@"cleanJobQueue" param1:@""  param2:@"" param3:@""];
     
     NSString * result;
     
@@ -1044,7 +962,7 @@ static float JOBINTERVAL = 10.0f;
 
 - (NSString *)getSubscriptions{
     // Job Logging
-    [self addJobLog:@"getTokenMQTT" param1:@""  param2:@"" param3:@""];
+    [[ADFPush sharedADFPush] addJobLog:@"getTokenMQTT" param1:@""  param2:@"" param3:@""];
     
     NSString * result;
     
@@ -1128,17 +1046,113 @@ static float JOBINTERVAL = 10.0f;
     return result;
 }
 
-- (void)ack:(BOOL)ack msgId:(NSString *)msgId sendDate:(NSDate *)sendDate ackType:(NSString *) ackType{
- 
+
+- (NSString *)callAck:(NSString *)msgId ackTime:(NSDate *)ackTime jobId:(int) jobId{
+    
+    NSLog(@"callAck - start");
+    NSString *result;
+    
+    @try {
+        PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+        int ackValue = [pushDataDB getAck:jobId]; //0=ackNo, 1=ackOK, 2=DB not found
+        NSDateFormatter *dataFormatter;
+        
+        dataFormatter = [[NSDateFormatter alloc] init];
+        [dataFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+        
+        NSString *sDate = [dataFormatter stringFromDate: ackTime];
+        // Job Logging
+        [[ADFPush sharedADFPush] addJobLog:@"callAck" param1:msgId  param2:sDate param3:[NSString stringWithFormat: @"%d", ackValue] ];
+        
+        if (ackValue == 1) {
+            JobBean *job = [[JobBean alloc]init];
+            
+            [job setMsgType:301];
+            [job setAck:0];
+            [job setQos:0];
+            [job setContent:@""];
+            [job setMsgId:msgId];
+            [job setContentType:@""];
+            [job setTopic:@""];
+            [job setServiceId:@""];
+            [job setUpdateTime:sDate];
+            
+            [pushDataDB insertJob:job];
+            
+            PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+            [pushDataDB deleteJobId:jobId]; //Job 삭제
+        } else if (ackValue == 0) {
+            PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+            [pushDataDB deleteJobId:jobId]; //Job 삭제
+        }
+        result = @"{\"status\": \"ok\",\"code\": 309200,\"message\": \"수신확인 메세지가 작업 DB에 저장이 되었습니다.\"}";
+    }
+    @catch (NSException *exception) {
+        NSLog(@"[ADFError] NSException: %@", exception);
+        result = [NSString stringWithFormat:@"{\"status\": \"fail\",\"code\": 309500,\"message\": \"%@\"}",exception];
+    }
+    @finally {
+        
+    }
+    
+    return result;
+}
+
+
+
+- (void)appAck:(NSString *)msgId ackTime:(NSDate *)ackTime jobId:(int) jobId{
+    
+    NSLog(@"appAck - start");
+    
+    PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+    int ackValue = [pushDataDB getAck:jobId]; //0=ackNo, 1=ackOK, 2=DB not found
     NSDateFormatter *dataFormatter;
     
     dataFormatter = [[NSDateFormatter alloc] init];
     [dataFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
     
-    NSString *sDate = [dataFormatter stringFromDate: sendDate];
+    NSString *sDate = [dataFormatter stringFromDate: ackTime];
+    // Job Logging
+    [[ADFPush sharedADFPush] addJobLog:@"appAck" param1:msgId  param2:sDate param3:[NSString stringWithFormat: @"%d", ackValue] ];
+    
+    if (ackValue == 1) {
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
+                                                             NSUserDomainMask, YES);
+        NSString *documentsDirectory = [paths objectAtIndex:0];
+        NSString *filePath =
+        [documentsDirectory stringByAppendingPathComponent:@"token.q"];
+        QueueFile  * tokenQ = [QueueFile queueFileWithPath:filePath];
+        
+        // token Queue read
+        NSString *token = [NSString stringWithUTF8String:[[tokenQ peek] bytes]];
+        
+        NSString *payload = [NSString stringWithFormat:@"{\"msgId\": \"%@\",\"ackTime\": \"%@\",\"tokenId\": \"%@\",\"ackType\": \"%@\"}",msgId,sDate,token,@"app"];
+        
+        NSLog(@"=========== playload :%@", payload);
+        NSString *topic = @"adfpush/ack";
+        
+        MqttMessage *msg = [[MqttMessage alloc] initWithMqttMessage:topic payload:(char*)[payload UTF8String] length:(int)payload.length qos:1 retained:false duplicate:NO];
+        
+        
+        [client send:msg invocationContext:self onCompletion:[[AckCallbacks alloc] init]];
+
+        PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+        [pushDataDB deleteJobId:jobId]; //Job 삭제
+    } else if (ackValue == 0) {
+        PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+        [pushDataDB deleteJobId:jobId]; //Job 삭제
+    }
+   
+}
+
+- (void)agentAck:(NSString *)msgId ackTimeStr:(NSString *)ackTimeStr ackType:(NSString *) ackType {
+
+    
+    NSLog(@"agentAck - start");
     
     // Job Logging
-    [self addJobLog:ackType param1:msgId  param2:sDate param3:(ack)? @"true" : @"false"];
+    [[ADFPush sharedADFPush] addJobLog:@"agentAck" param1:msgId  param2:ackTimeStr param3:ackType];
+    
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
                                                          NSUserDomainMask, YES);
@@ -1150,28 +1164,19 @@ static float JOBINTERVAL = 10.0f;
     // token Queue read
     NSString *token = [NSString stringWithUTF8String:[[tokenQ peek] bytes]];
     
-    NSString *payload = [NSString stringWithFormat:@"{\"msgId\": \"%@\",\"sendDate\": \"%@\",\"tokenId\": \"%@\",\"ackType\": \"%@\"}",msgId,sDate,token,ackType];
-
-    NSLog(@"=========== playload :%@", payload);
-    NSString *topic = @"sk/ack";
+    NSString *payload = [NSString stringWithFormat:@"{\"msgId\": \"%@\",\"ackTime\": \"%@\",\"tokenId\": \"%@\",\"ackType\": \"%@\"}",msgId,ackTimeStr,token,ackType];
     
-    if ([ackType isEqualToString:@"app"]) {
-        if (ack) {
-            MqttMessage *msg = [[MqttMessage alloc] initWithMqttMessage:topic payload:(char*)[payload UTF8String] length:(int)payload.length qos:1 retained:false duplicate:NO];
-            NSLog(@"=========== msg :%@", msg);
+    NSLog(@"=========== playload :%@", payload);
+    NSString *topic = @"adfpush/ack";
+    
+    
+    MqttMessage *msg = [[MqttMessage alloc] initWithMqttMessage:topic payload:(char*)[payload UTF8String] length:(int)payload.length qos:1 retained:false duplicate:NO];
+    
+//    NSLog(@"=========== msg :%@", msg);
 
-            [client send:msg invocationContext:self onCompletion:[[AckCallbacks alloc] init]];
-        }
-        
-        PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
-        [pushDataDB deleteJob:msgId];
-    } else if ([ackType isEqualToString:@"agent"]){
-        MqttMessage *msg = [[MqttMessage alloc] initWithMqttMessage:topic payload:(char*)[payload UTF8String] length:(int)payload.length qos:1 retained:false duplicate:NO];
-        NSLog(@"=========== msg :%@", msg);
-        [client send:msg invocationContext:self onCompletion:[[AgentAckCallbacks alloc] init]];
-    }
-
-   
+    [client send:msg invocationContext:self onCompletion:[[AgentAckCallbacks alloc] init]];
+    
+    
 }
 
 
@@ -1180,8 +1185,6 @@ static float JOBINTERVAL = 10.0f;
 -(void)jobAgent {
     
     QueueFile  *queueFile = [[ADFPush sharedADFPush] jobQF];
-    
-    //    QueueFile *jobLogQF = [ [ADFPush sharedADFPush] jobLogQF];
     
     PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
     NSArray *jobList = [pushDataDB getJobList];
@@ -1195,7 +1198,7 @@ static float JOBINTERVAL = 10.0f;
     
     NSString *queMsg;
     
-    int qSize = [queueFile size];
+//    int qSize = [queueFile size];
     for (int i=0; i < jobList.count; i++) {
         job = [jobList objectAtIndex:i];
         
@@ -1208,7 +1211,7 @@ static float JOBINTERVAL = 10.0f;
         
         
         
-        switch (job.type) {
+        switch (job.msgType) {
             case 100:
                 tempResponder = [[ADFPush sharedADFPush] Responder];
                 tempMethord = @"onMessageArrivedCallBack:";
@@ -1222,26 +1225,37 @@ static float JOBINTERVAL = 10.0f;
                     imp = [tempResponder methodForSelector:sel];
                     void (*func)(id, SEL, id) = (void *) imp;
                     
-                    result = [NSString stringWithFormat:@"{\"content\": \"%@\",\"msgId\":\"%@\"}",job.content,job.msgid];
+                    result = [NSString stringWithFormat:@"{\"content\": \"%@\",\"msgId\":\"%@\",\"contentType\":\"%@\",\"topic\":\"%@\",\"qos\":%d,\"jobId\":%d}",job.content,job.msgId, job.contentType, job.topic, job.qos, job.jobId];
                     
                     func(tempResponder, sel, result);
+                    
                 } else {
                     NSLog(@"[ADFPush] Warning : Method 'onMessageArrivedCallBack' not defind \n");
-                    return;
                 }
 
                 break;
+            
+            case 300:
+                [[ADFPush sharedADFPush] agentAck:job.msgId ackTimeStr:job.updateTime ackType:@"agent"];
+                [pushDataDB deleteJobId:job.jobId];
+                
+                break;
+                
+            case 301:
+                [[ADFPush sharedADFPush] agentAck:job.msgId ackTimeStr:job.updateTime ackType:@"app"];
+                [pushDataDB deleteJobId:job.jobId];
+                
+                break;
+
                 
             default:
+                
                 [self addJobLog:@"JobError" param1:queMsg param2:@"" param3:@""];
-                [pushDataDB deleteJobId:job.id];
+                NSLog(@"[ADFPush] jobAgent msgType error  : %@", queMsg);
+                [pushDataDB deleteJobId:job.jobId];
                 break;
         }
-        NSLog(@"QueueTest Length2 : %d", [queueFile size]);
-        
     }
-    
-    
 }
 
 

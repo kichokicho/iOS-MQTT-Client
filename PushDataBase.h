@@ -18,7 +18,8 @@
 - (void)initWithDataBase;
 - (void) dataBaseConnection:(sqlite3 **)tempDataBase;
 - (NSArray *) getJobList;
-- (void) insertJob:(JobBean *)job;
+- (int) insertJob:(JobBean *)job;
 - (void) deleteJob:(NSString *) msgId;
-- (void) deleteJobId:(int) id;
+- (void) deleteJobId:(int) jobId;
+- (int) getAck:(int) jobId;
 @end

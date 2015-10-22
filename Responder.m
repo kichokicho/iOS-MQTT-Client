@@ -31,7 +31,7 @@
 
 - (void) connectLostCallBack: (NSString *) data
 {
-    NSLog(@"Responder.my_callback called with greeting: %@.\n", data);
+    NSLog(@"connectLostCallBack data: %@.\n", data);
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
         [appDelegate updateConnectButton];
         [appDelegate reloadSubscriptionList];
@@ -41,14 +41,14 @@
 
 - (void) onMessageArrivedCallBack: (NSString *) data
 {
-    NSLog(@"Responder.my_callback called with greeting: %@.\n", data);
+    NSLog(@"onMessageArrivedCallBack data: %@.\n", data);
     NSData *jData = [data dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
     
     
     NSDate *todate = [NSDate date];
-    [[ADFPush sharedADFPush] ack:false msgId:json[@"msgId"] sendDate:todate ackType:@"app"];
-//    return self;
+    [[ADFPush sharedADFPush] callAck:json[@"msgId"] ackTime:todate jobId: [json[@"jobId"] intValue]];
+
 }
 
 - (void) disconnectCallBack: (NSString *) data
@@ -56,14 +56,14 @@
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
         [appDelegate updateConnectButton];
 
-    NSLog(@"Responder.my_callback called with greeting: %@.\n", data);
+    NSLog(@"disconnectCallBack data: %@.\n", data);
     
 //    return self;
 }
 
 - (void) subscribeCallBack: (NSString *) data
 {
-    NSLog(@"Responder.my_callback called with greeting: %@.\n", data);
+    NSLog(@"subscribeCallBack data: %@.\n", data);
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
         [appDelegate reloadSubscriptionList];
     
@@ -72,16 +72,16 @@
 
 - (void) unsubscribeCallBack: (NSString *) data
 {
-    NSLog(@"Responder.my_callback called with greeting: %@.\n", data);
+    NSLog(@"unsubscribeCallBack data: %@.\n", data);
     
 //    return self;
 }
 
-- (void) ackCallBack: (NSString *) data
-{
-    NSLog(@"Responder.my_callback called with greeting: %@.\n", data);
-    
-//    return self;
-}
+//- (void) ackCallBack: (NSString *) data
+//{
+//    NSLog(@"ackCallBack data: %@.\n", data);
+//    
+////    return self;
+//}
 
 @end

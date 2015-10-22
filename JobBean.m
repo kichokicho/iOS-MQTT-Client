@@ -10,14 +10,15 @@
 
 @implementation JobBean
 
-@synthesize id;
-@synthesize msgtype;
+@synthesize jobId;
+@synthesize msgType;
 @synthesize ack;
 @synthesize qos;
-@synthesize msgid;
+@synthesize msgId;
 @synthesize content;
-@synthesize contenttype;
-@synthesize sender;
-@synthesize serviceid;
+@synthesize contentType;
+@synthesize topic;
+@synthesize serviceId;
+@synthesize updateTime;
 
 @end
