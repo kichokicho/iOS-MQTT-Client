@@ -19,6 +19,6 @@
 @synthesize contentType;
 @synthesize topic;
 @synthesize serviceId;
-@synthesize updateTime;
+@synthesize issueTime;
 
 @end

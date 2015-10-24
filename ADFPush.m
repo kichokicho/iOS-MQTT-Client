@@ -515,6 +515,7 @@ NSData *dataForString(NSString *text)
     NSDate *todate;
     NSString *sDate;
     NSDateFormatter *dataFormatter;
+    int timestamp;
     
     int msgType = [json[@"msgType"] intValue];
     int jobId;
@@ -525,10 +526,11 @@ NSData *dataForString(NSString *text)
             //일반 메세지 DB 저장
             job = [[JobBean alloc]init];
             
-            todate = [NSDate date];
-            dataFormatter = [[NSDateFormatter alloc] init];
-            [dataFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-            sDate = [dataFormatter stringFromDate: todate];
+            timestamp = [[NSDate date] timeIntervalSince1970];
+//            todate = [NSDate date];
+//            dataFormatter = [[NSDateFormatter alloc] init];
+//            [dataFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+//            sDate = [dataFormatter stringFromDate: todate];
             
             [job setMsgType:[json[@"msgType"] intValue]];
             [job setAck:[json[@"ack"] intValue]];
@@ -538,12 +540,13 @@ NSData *dataForString(NSString *text)
             [job setContentType:json[@"contentType"]];
             [job setTopic:topic];
             [job setServiceId:json[@"serviceId"]];
-            [job setUpdateTime:sDate];
+            [job setIssueTime:timestamp];
             
+          
             jobId = [pushDataDB insertJob:job];
             
             if (jobId == -1) {
-                NSLog(@"[ADFPush] Warning : Method 'onMessageArrivedCallBack' not defind \n");
+                NSLog(@"[ADFPush] onMessageArrived - ERROR : insert Job Error \n");
                 return;
             }
             
@@ -559,7 +562,7 @@ NSData *dataForString(NSString *text)
                 [job2 setContentType:json[@"contentType"]];
                 [job2 setTopic:topic];
                 [job2 setServiceId:json[@"serviceId"]];
-                [job2 setUpdateTime:sDate];
+                [job2 setIssueTime:timestamp];
                 
                 [pushDataDB insertJob:job2];
             }
@@ -667,7 +670,7 @@ NSData *dataForString(NSString *text)
 @implementation ADFPush
 @synthesize client;
 
-static float JOBINTERVAL = 10.0f;
+static float JOBINTERVAL = 60.0f;
 
 #pragma mark Singleton Methods
 
@@ -919,6 +922,11 @@ static float JOBINTERVAL = 10.0f;
     
     NSString * result;
     
+    
+    PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+    [pushDataDB deleteJobAll]; //Job 삭제
+    
+    
     @try {
         
         QueueFile  * jobQ = [ [ADFPush sharedADFPush] jobQF];
@@ -1047,7 +1055,7 @@ static float JOBINTERVAL = 10.0f;
 }
 
 
-- (NSString *)callAck:(NSString *)msgId ackTime:(NSDate *)ackTime jobId:(int) jobId{
+- (NSString *)callAck:(NSString *)msgId ackTime:(int)ackTime jobId:(int) jobId{
     
     NSLog(@"callAck - start");
     NSString *result;
@@ -1055,14 +1063,14 @@ static float JOBINTERVAL = 10.0f;
     @try {
         PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
         int ackValue = [pushDataDB getAck:jobId]; //0=ackNo, 1=ackOK, 2=DB not found
-        NSDateFormatter *dataFormatter;
-        
-        dataFormatter = [[NSDateFormatter alloc] init];
-        [dataFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-        
-        NSString *sDate = [dataFormatter stringFromDate: ackTime];
+//        NSDateFormatter *dataFormatter;
+//        
+//        dataFormatter = [[NSDateFormatter alloc] init];
+//        [dataFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+//        
+//        NSString *sDate = [dataFormatter stringFromDate: ackTime];
         // Job Logging
-        [[ADFPush sharedADFPush] addJobLog:@"callAck" param1:msgId  param2:sDate param3:[NSString stringWithFormat: @"%d", ackValue] ];
+        [[ADFPush sharedADFPush] addJobLog:@"callAck" param1:msgId  param2:[NSString stringWithFormat: @"%d",ackTime] param3:[NSString stringWithFormat: @"%d", ackValue] ];
         
         if (ackValue == 1) {
             JobBean *job = [[JobBean alloc]init];
@@ -1075,7 +1083,7 @@ static float JOBINTERVAL = 10.0f;
             [job setContentType:@""];
             [job setTopic:@""];
             [job setServiceId:@""];
-            [job setUpdateTime:sDate];
+            [job setIssueTime:ackTime];
             
             [pushDataDB insertJob:job];
             
@@ -1100,58 +1108,58 @@ static float JOBINTERVAL = 10.0f;
 
 
 
-- (void)appAck:(NSString *)msgId ackTime:(NSDate *)ackTime jobId:(int) jobId{
-    
-    NSLog(@"appAck - start");
-    
-    PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
-    int ackValue = [pushDataDB getAck:jobId]; //0=ackNo, 1=ackOK, 2=DB not found
-    NSDateFormatter *dataFormatter;
-    
-    dataFormatter = [[NSDateFormatter alloc] init];
-    [dataFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-    
-    NSString *sDate = [dataFormatter stringFromDate: ackTime];
-    // Job Logging
-    [[ADFPush sharedADFPush] addJobLog:@"appAck" param1:msgId  param2:sDate param3:[NSString stringWithFormat: @"%d", ackValue] ];
-    
-    if (ackValue == 1) {
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
-                                                             NSUserDomainMask, YES);
-        NSString *documentsDirectory = [paths objectAtIndex:0];
-        NSString *filePath =
-        [documentsDirectory stringByAppendingPathComponent:@"token.q"];
-        QueueFile  * tokenQ = [QueueFile queueFileWithPath:filePath];
-        
-        // token Queue read
-        NSString *token = [NSString stringWithUTF8String:[[tokenQ peek] bytes]];
-        
-        NSString *payload = [NSString stringWithFormat:@"{\"msgId\": \"%@\",\"ackTime\": \"%@\",\"tokenId\": \"%@\",\"ackType\": \"%@\"}",msgId,sDate,token,@"app"];
-        
-        NSLog(@"=========== playload :%@", payload);
-        NSString *topic = @"adfpush/ack";
-        
-        MqttMessage *msg = [[MqttMessage alloc] initWithMqttMessage:topic payload:(char*)[payload UTF8String] length:(int)payload.length qos:1 retained:false duplicate:NO];
-        
-        
-        [client send:msg invocationContext:self onCompletion:[[AckCallbacks alloc] init]];
+//- (void)appAck:(NSString *)msgId ackTime:(NSDate *)ackTime jobId:(int) jobId{
+//    
+//    NSLog(@"appAck - start");
+//    
+//    PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+//    int ackValue = [pushDataDB getAck:jobId]; //0=ackNo, 1=ackOK, 2=DB not found
+//    NSDateFormatter *dataFormatter;
+//    
+//    dataFormatter = [[NSDateFormatter alloc] init];
+//    [dataFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+//    
+//    NSString *sDate = [dataFormatter stringFromDate: ackTime];
+//    // Job Logging
+//    [[ADFPush sharedADFPush] addJobLog:@"appAck" param1:msgId  param2:sDate param3:[NSString stringWithFormat: @"%d", ackValue] ];
+//    
+//    if (ackValue == 1) {
+//        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
+//                                                             NSUserDomainMask, YES);
+//        NSString *documentsDirectory = [paths objectAtIndex:0];
+//        NSString *filePath =
+//        [documentsDirectory stringByAppendingPathComponent:@"token.q"];
+//        QueueFile  * tokenQ = [QueueFile queueFileWithPath:filePath];
+//        
+//        // token Queue read
+//        NSString *token = [NSString stringWithUTF8String:[[tokenQ peek] bytes]];
+//        
+//        NSString *payload = [NSString stringWithFormat:@"{\"msgId\": \"%@\",\"ackTime\": \"%@\",\"token\": \"%@\",\"ackType\": \"%@\"}",msgId,sDate,token,@"app"];
+//        
+//        NSLog(@"=========== playload :%@", payload);
+//        NSString *topic = @"adfpush/ack";
+//        
+//        MqttMessage *msg = [[MqttMessage alloc] initWithMqttMessage:topic payload:(char*)[payload UTF8String] length:(int)payload.length qos:1 retained:false duplicate:NO];
+//        
+//        
+//        [client send:msg invocationContext:self onCompletion:[[AckCallbacks alloc] init]];
+//
+//        PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+//        [pushDataDB deleteJobId:jobId]; //Job 삭제
+//    } else if (ackValue == 0) {
+//        PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+//        [pushDataDB deleteJobId:jobId]; //Job 삭제
+//    }
+//   
+//}
 
-        PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
-        [pushDataDB deleteJobId:jobId]; //Job 삭제
-    } else if (ackValue == 0) {
-        PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
-        [pushDataDB deleteJobId:jobId]; //Job 삭제
-    }
-   
-}
-
-- (void)agentAck:(NSString *)msgId ackTimeStr:(NSString *)ackTimeStr ackType:(NSString *) ackType {
+- (void)agentAck:(NSString *)msgId ackTime:(int)ackTime ackType:(NSString *) ackType {
 
     
     NSLog(@"agentAck - start");
     
     // Job Logging
-    [[ADFPush sharedADFPush] addJobLog:@"agentAck" param1:msgId  param2:ackTimeStr param3:ackType];
+    [[ADFPush sharedADFPush] addJobLog:@"agentAck" param1:msgId  param2:[NSString stringWithFormat: @"%d",ackTime] param3:ackType];
     
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
@@ -1164,7 +1172,9 @@ static float JOBINTERVAL = 10.0f;
     // token Queue read
     NSString *token = [NSString stringWithUTF8String:[[tokenQ peek] bytes]];
     
-    NSString *payload = [NSString stringWithFormat:@"{\"msgId\": \"%@\",\"ackTime\": \"%@\",\"tokenId\": \"%@\",\"ackType\": \"%@\"}",msgId,ackTimeStr,token,ackType];
+    long  currentTimeMillis = (long long) ackTime*1000;
+    
+    NSString *payload = [NSString stringWithFormat:@"{\"msgId\": \"%@\",\"ackTime\": %ld,\"token\": \"%@\",\"ackType\": \"%@\"}",msgId,currentTimeMillis,token,ackType];
     
     NSLog(@"=========== playload :%@", payload);
     NSString *topic = @"adfpush/ack";
@@ -1184,8 +1194,6 @@ static float JOBINTERVAL = 10.0f;
 
 -(void)jobAgent {
     
-    QueueFile  *queueFile = [[ADFPush sharedADFPush] jobQF];
-    
     PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
     NSArray *jobList = [pushDataDB getJobList];
     JobBean *job = [[JobBean alloc]init];
@@ -1198,19 +1206,8 @@ static float JOBINTERVAL = 10.0f;
     
     NSString *queMsg;
     
-//    int qSize = [queueFile size];
     for (int i=0; i < jobList.count; i++) {
         job = [jobList objectAtIndex:i];
-        
-//        NSLog(@"QueueTest Length1 : %d", [queueFile size]);
-//        queMsg = [NSString stringWithUTF8String:[[queueFile peek] bytes]];
-//        NSLog(@"QueueTest msg : %@", queMsg);
-        
-//        NSData *jData = [queMsg dataUsingEncoding:NSUTF8StringEncoding];
-//        NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
-        
-        
-        
         switch (job.msgType) {
             case 100:
                 tempResponder = [[ADFPush sharedADFPush] Responder];
@@ -1236,13 +1233,13 @@ static float JOBINTERVAL = 10.0f;
                 break;
             
             case 300:
-                [[ADFPush sharedADFPush] agentAck:job.msgId ackTimeStr:job.updateTime ackType:@"agent"];
+                [self agentAck:job.msgId ackTime:job.issueTime ackType:@"agent"];
                 [pushDataDB deleteJobId:job.jobId];
                 
                 break;
                 
             case 301:
-                [[ADFPush sharedADFPush] agentAck:job.msgId ackTimeStr:job.updateTime ackType:@"app"];
+                [self agentAck:job.msgId ackTime:job.issueTime ackType:@"app"];
                 [pushDataDB deleteJobId:job.jobId];
                 
                 break;

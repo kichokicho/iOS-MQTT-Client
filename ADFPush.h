@@ -37,9 +37,8 @@
 - (void)unsubscribeMQTT:(NSString *)topicFilter;
 - (void)disconnectMQTT:(int)timeout;
 - (void)connectMQTT:(NSArray *)hosts ports:(NSArray *)ports cleanSession:(BOOL)cleanSession;
-- (NSString *)callAck:(NSString *)msgId ackTime:(NSDate *)ackTime jobId:(int) jobId;
-- (void)appAck:(NSString *)msgId ackTime:(NSDate *)ackTime jobId:(int) jobId;
-- (void)agentAck:(NSString *)msgId ackTimeStr:(NSString *)ackTimeStr ackType:(NSString *) ackType;
+- (NSString *)callAck:(NSString *)msgId ackTime:(int)ackTime jobId:(int) jobId;
+- (void)agentAck:(NSString *)msgId ackTime:(int)ackTime ackType:(NSString *) ackType;
 - (void)addJobLog:(NSString *)jobName param1:(NSString *) param1 param2:(NSString *) param2 param3:(NSString *) param3;
 - (NSString *)registerToken:(NSString *)token;
 - (NSString *)getTokenMQTT;

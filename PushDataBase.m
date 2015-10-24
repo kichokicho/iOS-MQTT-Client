@@ -29,7 +29,7 @@
             
             NSLog(@"[ADFPush] Erro Message : '%s'", sqlite3_errmsg(pDataBase));
             /* 테이블 생성 */
-            if (sqlite3_prepare_v2(pDataBase, "CREATE TABLE job ( jobid INTEGER PRIMARY KEY AUTOINCREMENT, msgtype INTEGER, ack INTEGER, qos INTEGER,msgid TEXT, content TEXT, contenttype TEXT, topic TEXT, serviceid TEXT, updatetime TEXT);", -1, &statement, NULL) != SQLITE_OK) {
+            if (sqlite3_prepare_v2(pDataBase, "CREATE TABLE job ( jobid INTEGER PRIMARY KEY AUTOINCREMENT, msgtype INTEGER, ack INTEGER, qos INTEGER,msgid TEXT, content TEXT, contenttype TEXT, topic TEXT, serviceid TEXT, issuetime INTEGER);", -1, &statement, NULL) != SQLITE_OK) {
                 NSLog(@"[ADFPush] TABLE CREATE ERROR: %s", sqlite3_errmsg(pDataBase));
             }else {
                 sqlite3_step(statement);
@@ -100,7 +100,7 @@
             return -1;
         }
         
-        const char *sql = "INSERT INTO job(msgtype, ack, qos, msgid, content, contenttype, topic, serviceid, updatetime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        const char *sql = "INSERT INTO job(msgtype, ack, qos, msgid, content, contenttype, topic, serviceid, issuetime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         // SQL Text를 prepared statement로 변환합니다.
         if(sqlite3_prepare_v2(pDataBase, sql, -1, &statement, NULL) != SQLITE_OK)
@@ -121,7 +121,7 @@
         sqlite3_bind_text(statement, 6, [job.contentType UTF8String], -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(statement, 7, [job.topic UTF8String], -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(statement, 8, [job.serviceId UTF8String], -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(statement, 9, [job.updateTime UTF8String], -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int(statement, 9, job.issueTime);
         
         
         
@@ -160,7 +160,6 @@
     }
     @catch (NSException *exception) {
         NSLog(@"exceptionName %@, reason %@", [exception name], [exception reason]);
-        @throw exception;
     }
     @finally {
         
@@ -193,7 +192,7 @@
         }
         
         // 검색 SQL
-        const char *sql = "SELECT jobid,msgtype, ack, qos, msgid, content, contenttype, topic, serviceid, updatetime FROM job";
+        const char *sql = "SELECT jobid,msgtype, ack, qos, msgid, content, contenttype, topic, serviceid, issuetime FROM job";
         
         // SQL Text를 prepared statement로 변환합니다.
         if(sqlite3_prepare_v2(pDataBase, sql, -1, &statement, NULL) != SQLITE_OK)
@@ -222,10 +221,10 @@
             [job setContentType:[[NSString alloc] initWithString:[NSString stringWithUTF8String:(char *)sqlite3_column_text(statement, 6)]]];
             [job setTopic:[[NSString alloc] initWithString:[NSString stringWithUTF8String:(char *)sqlite3_column_text(statement, 7)]]];
             [job setServiceId:[[NSString alloc] initWithString:[NSString stringWithUTF8String:(char *)sqlite3_column_text(statement, 8)]]];
-            [job setUpdateTime:[[NSString alloc] initWithString:[NSString stringWithUTF8String:(char *)sqlite3_column_text(statement, 9)]]];
+            [job setIssueTime:sqlite3_column_int(statement, 9)];
 
             [jobList addObject:job];
-            NSLog(@"Message : %d, %d, %d, %d, %@, %@, %@, %@, %@, %@", job.jobId,job.msgType,job.ack,job.qos,job.msgId,job.content,job.contentType,job.topic,job.serviceId, job.updateTime);
+            NSLog(@"Message : %d, %d, %d, %d, %@, %@, %@, %@, %@, %d", job.jobId,job.msgType,job.ack,job.qos,job.msgId,job.content,job.contentType,job.topic,job.serviceId, job.issueTime);
         }
         
         return (NSArray *) jobList;
@@ -360,6 +359,62 @@
     
 }
 
+
+- (NSString * ) deleteJobAll {
+    sqlite3_stmt *statement = nil;
+    sqlite3 *pDataBase;
+    NSString *result;
+    
+    @try {
+        NSLog(@"======  deleteJobAll - Start ");
+        
+        
+        [self dataBaseConnection:&pDataBase];     // 데이터베이스 연결합니다.
+        if (pDataBase == nil) {
+            NSLog(@"Erro Message : '%s'", sqlite3_errmsg(pDataBase));
+            result = [NSString stringWithUTF8String:(char*)sqlite3_errmsg(pDataBase)];
+            return result;
+        }
+        
+        const char *sql = "DELETE FROM job";
+        
+        // SQL Text를 prepared statement로 변환합니다.
+        if(sqlite3_prepare_v2(pDataBase, sql, -1, &statement, NULL) != SQLITE_OK)
+        {
+            
+            NSLog(@"Erro Message : '%s'", sqlite3_errmsg(pDataBase));
+            result = [NSString stringWithUTF8String:(char*)sqlite3_errmsg(pDataBase)];
+            return result;
+            
+            
+        }
+        
+        //쿼리를 실행한다.
+        int resultCode = sqlite3_step(statement);
+        NSLog(@"resultCode : '%d'", resultCode);
+        
+        if( resultCode != SQLITE_DONE) {
+            NSLog(@"Erro Message : '%s'", sqlite3_errmsg(pDataBase));
+            result = [NSString stringWithUTF8String:(char*)sqlite3_errmsg(pDataBase)];
+            return result;
+        }
+        
+        result = @"OK";
+    }
+    @catch (NSException *exception) {
+        NSLog(@"exceptionName %@, reason %@", [exception name], [exception reason]);
+        result = [NSString stringWithFormat:@"%@",exception];
+    }
+    @finally {
+        
+        sqlite3_reset(statement);   //객체 초기화
+        sqlite3_finalize(statement);  //객체를 닫는다
+        sqlite3_close(pDataBase);   //데이터베이스를 닫는다
+        pDataBase = nil;
+        
+    }
+    return result;
+}
 
 
 

@@ -46,8 +46,9 @@
     NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
     
     
-    NSDate *todate = [NSDate date];
-    [[ADFPush sharedADFPush] callAck:json[@"msgId"] ackTime:todate jobId: [json[@"jobId"] intValue]];
+//    NSDate *todate = [NSDate date];
+    int timestamp = [[NSDate date] timeIntervalSince1970];
+    [[ADFPush sharedADFPush] callAck:json[@"msgId"] ackTime:timestamp jobId: [json[@"jobId"] intValue]];
 
 }
 

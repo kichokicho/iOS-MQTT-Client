@@ -21,5 +21,6 @@
 - (int) insertJob:(JobBean *)job;
 - (void) deleteJob:(NSString *) msgId;
 - (void) deleteJobId:(int) jobId;
+- (NSString *) deleteJobAll;
 - (int) getAck:(int) jobId;
 @end

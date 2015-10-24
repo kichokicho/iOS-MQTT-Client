@@ -19,6 +19,6 @@
 @property (nonatomic, retain) NSString *contentType;
 @property (nonatomic, retain) NSString *topic;
 @property (nonatomic, retain) NSString *serviceId;
-@property (nonatomic, retain) NSString *updateTime;
+@property int issueTime;
 
 @end
