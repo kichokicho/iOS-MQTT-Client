@@ -20,12 +20,12 @@
 
 @property (nonatomic, retain) MqttClient *client;
 @property (nonatomic, retain) NSString *clientId;
-@property (nonatomic, retain) NSString *userID;
+@property bool loginMQTT;
 @property PushDataBase *pushDataDB;
 
 ///[sk]
 @property (nonatomic, retain) id Responder;
-@property (nonatomic, strong) QueueFile *jobQF;
+@property (nonatomic, strong) QueueFile *adfEnv;
 @property (nonatomic, strong) QueueFile *jobLogQF;
 @property (nonatomic, retain) NSString *messageADF;
 ///[sk]
@@ -36,7 +36,7 @@
 - (void)subscribeMQTT:(NSString *)topicFilter qos:(int)qos;
 - (void)unsubscribeMQTT:(NSString *)topicFilter;
 - (void)disconnectMQTT:(int)timeout;
-- (void)connectMQTT:(NSArray *)hosts ports:(NSArray *)ports cleanSession:(BOOL)cleanSession;
+- (void)connectMQTT:(BOOL)cleanSession;
 - (NSString *)callAck:(NSString *)msgId ackTime:(int)ackTime jobId:(int) jobId;
 - (void)agentAck:(NSString *)msgId ackTime:(int)ackTime ackType:(NSString *) ackType;
 - (void)addJobLog:(NSString *)jobName param1:(NSString *) param1 param2:(NSString *) param2 param3:(NSString *) param3;
@@ -45,8 +45,8 @@
 - (NSString *)connectStateMQTT;
 - (NSString *)cleanJobQueue;
 - (NSString *)getSubscriptions;
-
-
+- (NSString *)registerADFPushEnv:(NSArray *)hosts ports:(NSArray *)ports token:(NSString *)token adfPushServerUrl:(NSString *)adfPushServerUrl;
+- (NSString *)getAdfPushEnv;
 
 @end
 

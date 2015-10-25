@@ -17,8 +17,8 @@
     Responder * res = [[Responder alloc] init];
     [[ADFPush sharedADFPush] setResponder:res];
 //    NSString *clientID = @"fff9e7cec59c4e4fb2b70c6";
-    NSString *clientID = @"640095551c223b18b384311";
-    NSString * result = [[ADFPush sharedADFPush] registerToken:clientID];
+//    NSString *clientID = @"640095551c223b18b384311";
+//    NSString * result = [[ADFPush sharedADFPush] registerToken:clientID];
     
     self.tabBar = (UITabBarController *)self.window.rootViewController;
     return YES;
@@ -104,12 +104,12 @@
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
-    NSArray *servers = [[NSArray alloc] initWithObjects:@"adflow.net", nil];
-    NSArray *ports = [[NSArray alloc] initWithObjects:@"2883", nil];
+//    NSArray *servers = [[NSArray alloc] initWithObjects:@"adflow.net", nil];
+//    NSArray *ports = [[NSArray alloc] initWithObjects:@"2883", nil];
     
     
 //    [[ADFLib sharedADFLib] connectWithHosts:servers ports:ports clientId:clientID cleanSession:TRUE];
-    [[ADFPush sharedADFPush] connectMQTT:servers ports:ports cleanSession:TRUE];
+    [[ADFPush sharedADFPush] connectMQTT:FALSE];
     
     NSLog(@"mqtt connect ");
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
