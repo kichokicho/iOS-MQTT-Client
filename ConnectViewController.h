@@ -9,9 +9,8 @@
 #import <UIKit/UIKit.h>
 
 @interface ConnectViewController : UIViewController <UITextFieldDelegate>
+@property (weak, nonatomic) IBOutlet UITextView *resultTextView;
 @property (weak, nonatomic) IBOutlet UIButton *connectButton;
-@property (weak, nonatomic) IBOutlet UITextField *serverInput;
-@property (weak, nonatomic) IBOutlet UITextField *portInput;
-@property (weak, nonatomic) IBOutlet UISwitch *cleanSession;
 
+- (void)setResultText:(NSString *)setResultText;
 @end

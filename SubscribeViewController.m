@@ -14,21 +14,25 @@
 @interface SubscribeViewController ()
 @property (weak, nonatomic) IBOutlet UITextField *topicInput;
 @property (weak, nonatomic) IBOutlet UIButton *subscribeButton;
-@property (weak, nonatomic) IBOutlet UITableView *subListTable;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *qos;
 @property (weak, nonatomic) IBOutlet UIButton *unsubscribeButton;
-
+@property (weak, nonatomic) IBOutlet UITextView *resultTextView;
 
 @end
 
 @implementation SubscribeViewController
 
+- (void)setResultText:(NSString *)setResultText{
+    
+    self.resultTextView.text = setResultText;
+}
+
 - (IBAction)subscribePressed:(id)sender {
     NSLog(@"%s:%d - %@", __func__, __LINE__, sender);
     
-    NSString *topic = self.topicInput.text;
+//    NSString *topic = self.topicInput.text;
     
-    [[ADFPush sharedADFPush] subscribeMQTT:topic qos:(int)self.qos.selectedSegmentIndex];
+    [[ADFPush sharedADFPush] subscribeMQTT:self.topicInput.text qos:(int)self.qos.selectedSegmentIndex];
 }
 
 - (IBAction)qosSegmentChanged:(id)sender {
@@ -54,7 +58,7 @@
     
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     appDelegate.subscribeView = self;
-    appDelegate.subListView = self.subListTable;
+//    appDelegate.subListView = self.subListTable;
 }
 
 - (void)didReceiveMemoryWarning
@@ -137,11 +141,12 @@
     }
 }
 - (IBAction)unsubscribePressed:(id)sender {
-    NSArray* rows = [self.subListTable indexPathsForSelectedRows];
-    for (id idx in rows) {
-        NSIndexPath *index = (NSIndexPath *)idx;
-        [self tableView:self.subListTable commitEditingStyle:UITableViewCellEditingStyleDelete forRowAtIndexPath:index];
-    }
+//    NSArray* rows = [self.subListTable indexPathsForSelectedRows];
+//    for (id idx in rows) {
+//        NSIndexPath *index = (NSIndexPath *)idx;
+//        [self tableView:self.subListTable commitEditingStyle:UITableViewCellEditingStyleDelete forRowAtIndexPath:index];
+//    }
+    [[ADFPush sharedADFPush] unsubscribeMQTT:self.topicInput.text];
 }
 
 @end

@@ -15,28 +15,17 @@
 - (void) connectCallBack: (NSString *) data ;
 {
     NSLog(@"test1: %@.\n", data);
-    NSData *jData = [data dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
+    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    [appDelegate resultConnectView:data];
     
-    if ([json[@"code"] intValue] == 302200 ) {
-        AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-        [appDelegate updateConnectButton];
-    }
-    
-    
-//    NSLog(@"test2: %d.\n", errorCode);
-    
-//    return self;
 }
 
 - (void) connectLostCallBack: (NSString *) data
 {
     NSLog(@"connectLostCallBack data: %@.\n", data);
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-        [appDelegate updateConnectButton];
-        [appDelegate reloadSubscriptionList];
-    
-//    return self;
+    [appDelegate resultConnectView:data];
+
 }
 
 - (void) onMessageArrivedCallBack: (NSString *) data
@@ -45,7 +34,8 @@
     NSData *jData = [data dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
     
-    
+    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    [appDelegate resultConnectView:data];
 //    NSDate *todate = [NSDate date];
     int timestamp = [[NSDate date] timeIntervalSince1970];
     [[ADFPush sharedADFPush] callAck:json[@"msgId"] ackTime:timestamp jobId: [json[@"jobId"] intValue]];
@@ -55,7 +45,7 @@
 - (void) disconnectCallBack: (NSString *) data
 {
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-        [appDelegate updateConnectButton];
+    [appDelegate resultConnectView:data];
 
     NSLog(@"disconnectCallBack data: %@.\n", data);
     
@@ -66,7 +56,8 @@
 {
     NSLog(@"subscribeCallBack data: %@.\n", data);
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-        [appDelegate reloadSubscriptionList];
+    [appDelegate reloadSubscriptionList];
+    [appDelegate resultSubscribeView:data];
     
 //    return self;
 }
@@ -74,15 +65,18 @@
 - (void) unsubscribeCallBack: (NSString *) data
 {
     NSLog(@"unsubscribeCallBack data: %@.\n", data);
-    
+    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    [appDelegate resultSubscribeView:data];
 //    return self;
 }
 
-//- (void) ackCallBack: (NSString *) data
-//{
-//    NSLog(@"ackCallBack data: %@.\n", data);
-//    
-////    return self;
-//}
+- (void) getSubscriptionsCallBack: (NSString *) data
+{
+    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    [appDelegate resultGetSubscriptionsView:data];
+    NSLog(@"getSubscriptionsCallBack data: %@.\n", data);
+    
+
+}
 
 @end

@@ -10,4 +10,5 @@
 
 @interface SubscribeViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate>
 
+- (void)setResultText:(NSString *)setResultText;
 @end

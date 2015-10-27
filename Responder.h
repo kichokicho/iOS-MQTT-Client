@@ -15,5 +15,5 @@
 - (void) disconnectCallBack: (NSString *) data;
 - (void) subscribeCallBack: (NSString *) data;
 - (void) unsubscribeCallBack: (NSString *) data;
-//- (void) ackCallBack: (NSString *) data;
+- (void) getSubscriptionsCallBack: (NSString *) data;
 @end

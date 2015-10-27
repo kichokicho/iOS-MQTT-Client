@@ -22,46 +22,33 @@
     return [field componentsSeparatedByString:@","];
 }
 
+- (void)setResultText:(NSString *)setResultText{
+    
+    self.resultTextView.text = setResultText;
+}
+
 - (IBAction)connectPressed:(id)sender {
     // sender will always be self.testButton
-    NSLog(@"%s:%d - %@", __func__, __LINE__, sender);
-    NSLog(@"button Title :%@", [[self connectButton] currentTitle]);
-    
-    if ([[[self connectButton] currentTitle]  isEqual:@"Connect"]) {
-        
-        NSArray *servers = [ConnectViewController parseCommaList:self.serverInput.text];
-        NSArray *ports = [ConnectViewController parseCommaList:self.portInput.text];
-        NSString *token = @"640095551c223b18b384311";
-        NSString *adfPushServerUrl = @"http://112.223.76.75:18080";
-    
-        [[ADFPush sharedADFPush] registerADFPushEnv:servers ports:ports token:token adfPushServerUrl:adfPushServerUrl];
-        
-        
-//        NSString *clientID = [[ADFPush sharedADFPush] clientId];
-//        if (clientID == NULL) {
-//            //random ID gen
-//            //clientID = [ConnectViewController uniqueId];
-//            clientID = @"test1234";
-//            [[ADFPush sharedADFPush] setClientId:clientID];
-//        }
-//        [[ADFPush sharedADFPush] connectWithHosts:servers ports:ports clientId:clientID cleanSession:self.cleanSession.isOn];
-        [[ADFPush sharedADFPush] connectMQTT:self.cleanSession.isOn];
-        
+     [[ADFPush sharedADFPush] connectMQTT];
    
-        AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-        [appDelegate switchToPublish];
-        
-
-        
-    } else {
-        [[ADFPush sharedADFPush] disconnectMQTT:5];
-    }
 
 }
+- (IBAction)isConnectPressed:(id)sender {
+    
+    NSString *result = [[ADFPush sharedADFPush] connectStateMQTT];
+    
+    self.resultTextView.text = result;
+}
+
+- (IBAction)disconnectPressed:(id)sender {
+    
+     [[ADFPush sharedADFPush] disconnectMQTT:5];
+}
+
 
 - (IBAction)cleanSessionChanged:(id)sender {
     NSLog(@"%s:%d - %@", __func__, __LINE__, sender);
-    NSLog(@"cleanSession changed to: %d", self.cleanSession.isOn);
+//    NSLog(@"cleanSession changed to: %d", self.cleanSession.isOn);
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil

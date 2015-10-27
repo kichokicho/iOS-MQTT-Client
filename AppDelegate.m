@@ -90,6 +90,27 @@
     });
 }
 
+- (void)resultConnectView:(NSString *)setResultText
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.connectView setResultText:setResultText];
+    });
+}
+
+- (void)resultSubscribeView:(NSString *)setResultText
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.subscribeView setResultText:setResultText];
+    });
+}
+
+- (void)resultGetSubscriptionsView:(NSString *)setResultText
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.commandView setResultText:setResultText];
+    });
+}
+
 - (void)applicationWillResignActive:(UIApplication *)application
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
@@ -109,7 +130,7 @@
     
     
 //    [[ADFLib sharedADFLib] connectWithHosts:servers ports:ports clientId:clientID cleanSession:TRUE];
-    [[ADFPush sharedADFPush] connectMQTT:FALSE];
+    [[ADFPush sharedADFPush] connectMQTT];
     
     NSLog(@"mqtt connect ");
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.

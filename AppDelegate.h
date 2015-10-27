@@ -11,6 +11,7 @@
 #import "PublishViewController.h"
 #import "SubscribeViewController.h"
 #import "LogViewController.h"
+#import "CommandViewController.h"
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
@@ -19,6 +20,7 @@
 @property (weak, nonatomic) ConnectViewController *connectView;
 @property (weak, nonatomic) PublishViewController *publishView;
 @property (weak, nonatomic) SubscribeViewController *subscribeView;
+@property (weak, nonatomic) CommandViewController *commandView;
 @property (weak, nonatomic) LogViewController *logView;
 @property (weak, nonatomic) UITableView *subListView;
 
@@ -30,5 +32,7 @@
 - (void)reloadLog;
 - (void)updateConnectButton;
 - (void)reloadSubscriptionList;
-
+- (void)resultConnectView:(NSString *)setResultText;
+- (void)resultSubscribeView:(NSString *)setResultText;
+- (void)resultGetSubscriptionsView:(NSString *)setResultText;
 @end
