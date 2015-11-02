@@ -51,9 +51,12 @@
 
 - (void)clearLog
 {
-//    ADFLib *ADFLib = [ADFLib sharedADFLib];
-//    [ADFLib clearLog];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        
+    QueueFile * jobLogQF = [ [ADFPush sharedADFPush] jobLogQF];
+    [jobLogQF clear];
     [self reloadLog];
+    });
 }
 
 - (void)reloadLog

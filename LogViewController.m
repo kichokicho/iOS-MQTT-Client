@@ -21,6 +21,10 @@
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     [appDelegate clearLog];
 }
+- (IBAction)ReloadPressed:(id)sender {
+    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    [appDelegate reloadLog];
+}
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -82,14 +86,15 @@
     
 
     QueueFile *jobLogQF = [[ADFPush sharedADFPush] jobLogQF];
-    
+    NSString * jobString = [NSString stringWithUTF8String:[[jobLogQF peek] bytes]];
+//    [jobLogQF remove];
+    NSData *jData = [jobString dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
     
 //    LogMessage *message = [ADFLib.logMessages objectAtIndex:indexPath.row];
 
-//    cell.textLabel.text = [NSString stringWithUTF8String:[[jobLogQF peek] bytes]];
-    cell.detailTextLabel.text = [NSString stringWithUTF8String:[[jobLogQF peek] bytes]];
-    [jobLogQF remove];
-    NSLog(@"size ::@%d",[jobLogQF size]);
+    cell.textLabel.text = json[@"jobName"];
+    cell.detailTextLabel.text = jobString;
     
 //    if ([message.type isEqualToString:@"Action"]) {
 //        [cell.imageView setImage:[UIImage imageNamed:@"glyphicons_003_user.png"]];

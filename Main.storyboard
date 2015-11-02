@@ -352,7 +352,12 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Log" id="UGa-2o-2mm">
-                        <barButtonItem key="leftBarButtonItem" title="Clear" id="RzN-gQ-11k">
+                        <barButtonItem key="leftBarButtonItem" title="Reload" id="bB3-re-ABN" userLabel="Reload">
+                            <connections>
+                                <action selector="ReloadPressed:" destination="Fim-YT-Wg1" id="JDJ-VJ-LJb"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" title="Clear" id="RzN-gQ-11k">
                             <connections>
                                 <action selector="clearPressed:" destination="Fim-YT-Wg1" id="SMZ-FZ-oaN"/>
                             </connections>

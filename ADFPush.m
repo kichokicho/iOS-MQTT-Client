@@ -782,7 +782,6 @@ int MQTTKEEPALIVEINTERVAL;
         NSURLSessionDataTask *task = [session dataTaskWithRequest:request
                                                 completionHandler:
                                       ^(NSData *data, NSURLResponse *response, NSError *error) {
-                                                       NSLog(@"================ddfff================");
                                                       NSString * result;
                                           
                                                       if (error != nil) {
