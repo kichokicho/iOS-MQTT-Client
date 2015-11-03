@@ -14,13 +14,13 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    
+    
     Responder * res = [[Responder alloc] init];
     [[ADFPush sharedADFPush] setResponder:res];
-//    NSString *clientID = @"fff9e7cec59c4e4fb2b70c6";
-//    NSString *clientID = @"640095551c223b18b384311";
-//    NSString * result = [[ADFPush sharedADFPush] registerToken:clientID];
     
     self.tabBar = (UITabBarController *)self.window.rootViewController;
+    
     return YES;
 }
 

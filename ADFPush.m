@@ -227,7 +227,7 @@ NSData *dataForString(NSString *text)
 @implementation GeneralCallbacks
 - (void) onConnectionLost:(NSObject*)invocationContext errorMessage:(NSString*)errorMessage
 {
-    NSLog(@"- invocationContext=%@  errorMessage=%@", invocationContext, errorMessage);
+//    NSLog(@"- invocationContext=%@  errorMessage=%@", invocationContext, errorMessage);
     NSString *tempMethord = @"connectLostCallBack:";
     NSString *result = @"{\"status\": \"fail\",\"code\": 302401,\"message\": \"MQTT 연결이 끊어졌습니다\"}";
     
@@ -235,113 +235,122 @@ NSData *dataForString(NSString *text)
 }
 - (void) onMessageArrived:(NSObject*)invocationContext message:(MqttMessage*)msg
 {
-    int qos = msg.qos;
-    BOOL retained = msg.retained;
-    NSString *payload = [[NSString alloc] initWithBytes:msg.payload length:msg.payloadLength encoding:NSUTF8StringEncoding];
-    NSString *topic = msg.destinationName;
-    NSString *retainedStr = retained ? @" [retained]" : @"";
-    NSString *logStr = [NSString stringWithFormat:@"[%@ QoS:%d] %@%@", topic, qos, payload, retainedStr];
-    NSLog(@"- %@", logStr);
-    NSLog(@"GeneralCallbacks - onMessageArrived!");
     
-    PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
-    JobBean *job;
-    JobBean *job2;
-    
-    NSData *jData = [payload dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
-
-    NSString *tempMethord;
-    NSString *result;
-    int timestamp;
-    NSString *content;
-    
-    int msgType = [json[@"msgType"] intValue];
-    int jobId;
-    
-    switch (msgType) {
-        case 100:
-            
-            //일반 메세지 DB 저장
-            job = [[JobBean alloc]init];
-            
-            timestamp = [[NSDate date] timeIntervalSince1970];
-            
-            [job setMsgType:[json[@"msgType"] intValue]];
-            [job setAck:[json[@"ack"] intValue]];
-            [job setQos:qos];
-            [job setContent:json[@"content"]];
-            [job setMsgId:json[@"msgId"]];
-            [job setContentType:json[@"contentType"]];
-            [job setTopic:topic];
-            [job setServiceId:json[@"serviceId"]];
-            [job setIssueTime:timestamp];
-            
-          
-            jobId = [pushDataDB insertJob:job];
-            
-            if (jobId == -1) {
-                NSLog(@"[ADFPush] onMessageArrived - ERROR : insert Job Error \n");
-                return;
-            }
-            
-            // Agent Ack send
-            if (job.ack > 0) {
-                // job Table - agent ack insert
-                job2 = [[JobBean alloc]init];
-                [job2 setMsgType:300];
-                [job2 setAck:[json[@"ack"] intValue]];
-                [job2 setQos:qos];
-                [job2 setContent:@""];
-                [job2 setMsgId:json[@"msgId"]];
-                [job2 setContentType:json[@"contentType"]];
-                [job2 setTopic:topic];
-                [job2 setServiceId:json[@"serviceId"]];
-                [job2 setIssueTime:timestamp];
+    @try {
+        int qos = msg.qos;
+        //    BOOL retained = msg.retained;
+        NSString *payload = [[NSString alloc] initWithBytes:msg.payload length:msg.payloadLength encoding:NSUTF8StringEncoding];
+        NSString *topic = msg.destinationName;
+        //    NSString *retainedStr = retained ? @" [retained]" : @"";
+        //    NSString *logStr = [NSString stringWithFormat:@"[%@ QoS:%d] %@%@", topic, qos, payload, retainedStr];
+        //    NSLog(@"- %@", logStr);
+        //    NSLog(@"GeneralCallbacks - onMessageArrived!");
+        
+        PushDataBase *pushDataDB = [[ADFPush sharedADFPush] pushDataDB];
+        JobBean *job;
+        JobBean *job2;
+        
+        NSData *jData = [payload dataUsingEncoding:NSUTF8StringEncoding];
+        NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
+        
+        NSString *tempMethord;
+        NSString *result;
+        int timestamp;
+        NSString *content;
+        
+        int msgType = [json[@"msgType"] intValue];
+        int jobId;
+        
+        switch (msgType) {
+            case 100:
                 
-                [pushDataDB insertJob:job2];
-            }
-            
-            
-            // onMessageArrivedCallBack Call
-            tempMethord = @"onMessageArrivedCallBack:";
-            result = [NSString stringWithFormat:@"{\"content\": \"%@\",\"msgId\":\"%@\",\"contentType\":\"%@\",\"topic\":\"%@\",\"qos\":%d,\"jobId\":%d}",job.content,job.msgId, job.contentType, job.topic, job.qos, jobId];
-            [[ADFPush sharedADFPush] callBackSelector:tempMethord data:result];
-            
-            break;
-            
-        case 200:
-            
-            //mqttKeepAliveInterval setting
-            job = [[JobBean alloc]init];
-            
-            timestamp = [[NSDate date] timeIntervalSince1970];
-            [job setMsgType:[json[@"msgType"] intValue]];
-//            [job setAck:[json[@"ack"] intValue]];
-            [job setQos:qos];
-            content = [NSString stringWithFormat:@"{\"keepAliveTime\":%d}",[json[@"content"][@"keepAliveTime"]intValue]];
-            [job setContent:content];
-            [job setMsgId:json[@"msgId"]];
-            [job setContentType:json[@"contentType"]];
-            [job setTopic:topic];
-            [job setServiceId:json[@"serviceId"]];
-            [job setIssueTime:timestamp];
-            
-            [pushDataDB insertJob:job];
+                //일반 메세지 DB 저장
+                job = [[JobBean alloc]init];
+                
+                timestamp = [[NSDate date] timeIntervalSince1970];
+                
+                [job setMsgType:[json[@"msgType"] intValue]];
+                [job setAck:[json[@"ack"] intValue]];
+                [job setQos:qos];
+                [job setContent:json[@"content"]];
+                [job setMsgId:json[@"msgId"]];
+                [job setContentType:json[@"contentType"]];
+                [job setTopic:topic];
+                [job setServiceId:json[@"serviceId"]];
+                [job setIssueTime:timestamp];
+                
+                
+                jobId = [pushDataDB insertJob:job];
+                
+                if (jobId == -1) {
+                    NSLog(@"[ADFPush] onMessageArrived - ERROR : insert Job Error \n");
+                    return;
+                }
+                
+                // Agent Ack send
+                if (job.ack > 0) {
+                    // job Table - agent ack insert
+                    job2 = [[JobBean alloc]init];
+                    [job2 setMsgType:300];
+                    [job2 setAck:[json[@"ack"] intValue]];
+                    [job2 setQos:qos];
+                    [job2 setContent:@""];
+                    [job2 setMsgId:json[@"msgId"]];
+                    [job2 setContentType:json[@"contentType"]];
+                    [job2 setTopic:topic];
+                    [job2 setServiceId:json[@"serviceId"]];
+                    [job2 setIssueTime:timestamp];
+                    
+                    [pushDataDB insertJob:job2];
+                }
+                
+                
+                // onMessageArrivedCallBack Call
+                tempMethord = @"onMessageArrivedCallBack:";
+                result = [NSString stringWithFormat:@"{\"content\": \"%@\",\"msgId\":\"%@\",\"contentType\":\"%@\",\"topic\":\"%@\",\"qos\":%d,\"jobId\":%d}",job.content,job.msgId, job.contentType, job.topic, job.qos, jobId];
+                [[ADFPush sharedADFPush] callBackSelector:tempMethord data:result];
+                
+                break;
+                
+            case 200:
+                
+                //mqttKeepAliveInterval setting
+                job = [[JobBean alloc]init];
+                
+                timestamp = [[NSDate date] timeIntervalSince1970];
+                [job setMsgType:[json[@"msgType"] intValue]];
+                //            [job setAck:[json[@"ack"] intValue]];
+                [job setQos:qos];
+                content = [NSString stringWithFormat:@"{\"keepAliveTime\":%d}",[json[@"content"][@"keepAliveTime"]intValue]];
+                [job setContent:content];
+                [job setMsgId:json[@"msgId"]];
+                [job setContentType:json[@"contentType"]];
+                [job setTopic:topic];
+                [job setServiceId:json[@"serviceId"]];
+                [job setIssueTime:timestamp];
+                
+                [pushDataDB insertJob:job];
+                
+                break;
+                
+            default:
+                [[ADFPush sharedADFPush] addJobLog:@"JobError" param1:payload param2:@"" param3:@""];
+                break;
+        }
 
-            break;
-            
-        default:
-            [[ADFPush sharedADFPush] addJobLog:@"JobError" param1:payload param2:@"" param3:@""];
-            break;
     }
+    @catch (NSException *exception) {
+        NSLog(@"[ADFError] connectMQTT - NSException: %@", exception);
+        [[ADFPush sharedADFPush] addJobLog:@"JobNSException" param1:@"connectMQTT" param2:exception param3:@""];
+    }
+
 
 }
 
 
 - (void) onMessageDelivered:(NSObject*)invocationContext messageId:(int)msgId
 {
-    NSLog(@"GeneralCallbacks - onMessageDelivered!, messageID:%d", msgId);
+//    NSLog(@"GeneralCallbacks - onMessageDelivered!, messageID:%d", msgId);
 }
 
 
@@ -440,7 +449,7 @@ int MQTTKEEPALIVEINTERVAL;
         }
 
         
-        filePath = [documentsDirectory stringByAppendingPathComponent:@"jobLog.q"];
+        filePath = [documentsDirectory stringByAppendingPathComponent:@"adfJobLog.q"];
         self.jobLogQF = [QueueFile queueFileWithPath:filePath];
         self.messageADF = nil;
         
@@ -740,14 +749,25 @@ int MQTTKEEPALIVEINTERVAL;
         
         NSString *result = [NSString stringWithFormat:@"{\"date\": \"%@\",\"jobName\": \"%@=%@=%@=%@\"}",dateString, jobName,param1,param2,param3];
         
-        QueueFile * jobLogQF = [ [ADFPush sharedADFPush] jobLogQF];
-        if ([jobLogQF size] > 3000) {
-            [jobLogQF remove];
-        }
-        [jobLogQF add:dataForString(result)];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+           
+            @try {
+                QueueFile * jobLogQF = [ [ADFPush sharedADFPush] jobLogQF];
+                if ([jobLogQF size] > 3000) {
+                    [jobLogQF remove];
+                }
+                [jobLogQF add:dataForString(result)];
+            }
+            @catch (NSException *exception) {
+                NSLog(@"[ADFError] addJobLog - NSException: %@", exception);
+            }
+        });
+        
+        
     }
     @catch (NSException *exception) {
-        NSLog(@"[ADFError] NSException: %@", exception);
+        NSLog(@"[ADFError] addJobLog - NSException: %@", exception);
     }
 }
 
@@ -1065,15 +1085,23 @@ int MQTTKEEPALIVEINTERVAL;
     NSDictionary *dict=nil;
     NSDictionary *contentDict=nil;
     NSString *adfEnvJson;
+    int timestamp;
+    
     
     for (int i=0; i < jobList.count; i++) {
         job = [jobList objectAtIndex:i];
+        
         switch (job.msgType) {
             case 100:
-                tempMethord = @"onMessageArrivedCallBack:";
-                result = [NSString stringWithFormat:@"{\"content\": \"%@\",\"msgId\":\"%@\",\"contentType\":\"%@\",\"topic\":\"%@\",\"qos\":%d,\"jobId\":%d}",job.content,job.msgId, job.contentType, job.topic, job.qos, job.jobId];
-
-                [[ADFPush sharedADFPush] callBackSelector:tempMethord data:result];
+                timestamp = [[NSDate date] timeIntervalSince1970] - JOBINTERVAL;
+                NSLog(@"====== timestamp: %d, JOBINTERVAL : %f",timestamp,JOBINTERVAL);
+                if (job.issueTime < timestamp) {
+                    tempMethord = @"onMessageArrivedCallBack:";
+                    result = [NSString stringWithFormat:@"{\"content\": \"%@\",\"msgId\":\"%@\",\"contentType\":\"%@\",\"topic\":\"%@\",\"qos\":%d,\"jobId\":%d}",job.content,job.msgId, job.contentType, job.topic, job.qos, job.jobId];
+                    
+                    [[ADFPush sharedADFPush] callBackSelector:tempMethord data:result];
+                }
+                
 
                 break;
             

@@ -87,14 +87,14 @@
 
     QueueFile *jobLogQF = [[ADFPush sharedADFPush] jobLogQF];
     NSString * jobString = [NSString stringWithUTF8String:[[jobLogQF peek] bytes]];
-//    [jobLogQF remove];
+    [jobLogQF remove];
     NSData *jData = [jobString dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
     
 //    LogMessage *message = [ADFLib.logMessages objectAtIndex:indexPath.row];
 
-    cell.textLabel.text = json[@"jobName"];
-    cell.detailTextLabel.text = jobString;
+    cell.textLabel.text = json[@"date"];
+    cell.detailTextLabel.text = json[@"jobName"];;
     
 //    if ([message.type isEqualToString:@"Action"]) {
 //        [cell.imageView setImage:[UIImage imageNamed:@"glyphicons_003_user.png"]];
