@@ -87,6 +87,7 @@
 
     QueueFile *jobLogQF = [[ADFPush sharedADFPush] jobLogQF];
     NSString * jobString = [NSString stringWithUTF8String:[[jobLogQF peek] bytes]];
+    NSLog(@"[JobString] :%@",jobString);
     [jobLogQF remove];
     NSData *jData = [jobString dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
