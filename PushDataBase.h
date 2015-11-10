@@ -23,4 +23,5 @@
 - (void) deleteJobId:(int) jobId;
 - (NSString *) deleteJobAll;
 - (int) getAck:(int) jobId;
+//- (int) getJobId:(NSString *) msgId;
 @end

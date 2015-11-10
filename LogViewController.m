@@ -74,7 +74,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
 
-    QueueFile *jobLogQF = [[ADFPush sharedADFPush] jobLogQF];
+    QueueFile *jobLogQF = [[ADFPush sharedADFPush] adfTranLogQF];
     return [jobLogQF size];
 //    return 1;
 }
@@ -85,7 +85,7 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
 
-    QueueFile *jobLogQF = [[ADFPush sharedADFPush] jobLogQF];
+    QueueFile *jobLogQF = [[ADFPush sharedADFPush] adfTranLogQF];
     NSString * jobString = [NSString stringWithUTF8String:[[jobLogQF peek] bytes]];
     NSLog(@"[JobString] :%@",jobString);
     [jobLogQF remove];
@@ -95,7 +95,7 @@
 //    LogMessage *message = [ADFLib.logMessages objectAtIndex:indexPath.row];
 
     cell.textLabel.text = json[@"date"];
-    cell.detailTextLabel.text = json[@"jobName"];;
+    cell.detailTextLabel.text = json[@"jobName"];
     
 //    if ([message.type isEqualToString:@"Action"]) {
 //        [cell.imageView setImage:[UIImage imageNamed:@"glyphicons_003_user.png"]];

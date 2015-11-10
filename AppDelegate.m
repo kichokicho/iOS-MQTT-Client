@@ -53,7 +53,7 @@
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         
-    QueueFile * jobLogQF = [ [ADFPush sharedADFPush] jobLogQF];
+    QueueFile * jobLogQF = [ [ADFPush sharedADFPush] adfTranLogQF];
     [jobLogQF clear];
     [self reloadLog];
     });
