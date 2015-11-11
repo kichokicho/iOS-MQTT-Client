@@ -49,5 +49,6 @@
 - (NSString *)registerADFPushEnv:(NSArray *)hosts ports:(NSArray *)ports cleanSesstion:(BOOL)cleanSesstion  token:(NSString *)token adfPushServerUrl:(NSString *)adfPushServerUrl;
 - (NSString *)getAdfPushEnv;
 - (void) callBackSelector:(NSString *)tempMethord data:(NSString *) data;
+
 @end
 
