@@ -96,6 +96,8 @@
             return -1;
         }
         
+        
+        
         const char *sql = "INSERT INTO job(msgtype, ack, qos, msgid, content, contenttype, topic, serviceid, issuetime) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         // SQL Text를 prepared statement로 변환합니다.
@@ -107,6 +109,13 @@
             //            sqlite3_close(pDataBase);   //데이터베이스를 닫는다
             //            pDataBase = nil;
             return -1;
+        }
+        
+        if (job.contentType == nil) {
+            job.contentType = @"";
+        }
+        if (job.serviceId == nil) {
+            job.serviceId = @"";
         }
         
         // 조건을 바인딩합니다.
