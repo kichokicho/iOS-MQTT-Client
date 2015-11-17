@@ -68,6 +68,7 @@
         self.tokenInput.text = json[@"data"][@"token"];
         self.adfPushUrl.text = json[@"data"][@"adfPushServerUrl"];
         [self.cleanSession setOn:[json[@"data"][@"cleanSesstion"]boolValue]];
+        
     }
     @catch (NSException *exception) {
         NSLog(@"[ADFError] NSException: %@", exception);

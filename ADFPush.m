@@ -502,24 +502,32 @@ int MQTTKEEPALIVEINTERVAL;
 
         
         if ([self.adfEnv size] > 0) {
+            
             NSString *adfEnvJson = [NSString stringWithUTF8String:[[self.adfEnv peek] bytes]];
             NSData *jData = [adfEnvJson dataUsingEncoding:NSUTF8StringEncoding];
             NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
+//            NSLog(@"====== adfEnvJson :: %@", adfEnvJson);
+//            NSLog(@"====== CLEANSESSION44444 :: %@",json[@"cleanSesstion"]);
             
             MQTTHOSTS = json[@"hosts"];
             MQTTPORTS = json[@"ports"];
-            CLEANSESSION = json[@"cleanSession"];
+            CLEANSESSION = [json[@"cleanSesstion"]boolValue];
             MQTTTOKEN = json[@"token"];
             ADFPUSHHOST = json[@"adfPushServerUrl"];
             MQTTKEEPALIVEINTERVAL = [json[@"mqttKeepAliveInterval"] intValue];
+            NSLog(@"====== CLEANSESSION :: %@", (CLEANSESSION)? @"true" : @"false");
+//
+//            NSLog(@"====== MQTTHOSTS :: %@, MQTTPORTS :: %@,CLEANSESSION :: %@,MQTTTOKEN :: %@,ADFPUSHHOST :: %@,",MQTTHOSTS, MQTTPORTS,  (CLEANSESSION)? @"true" : @"false", MQTTTOKEN, ADFPUSHHOST);
             
         } else {
+            
             MQTTHOSTS = nil;
             MQTTPORTS = nil;
             MQTTTOKEN = nil;
             ADFPUSHHOST = nil;
             MQTTKEEPALIVEINTERVAL = 30;
             CLEANSESSION = false;
+            NSLog(@"====== CLEANSESSION22222 :: %@", (CLEANSESSION)? @"true" : @"false");
         }
 
         // Transaction log
@@ -563,6 +571,7 @@ int MQTTKEEPALIVEINTERVAL;
         
 
         NSLog(@"====== MQTTTOKEN :: %@", MQTTTOKEN);
+        NSLog(@"====== CLEANSESSION :: %@", (CLEANSESSION)? @"true" : @"false");
         client = [client initWithHosts:MQTTHOSTS ports:MQTTPORTS clientId:MQTTTOKEN];
         ConnectOptions *opts = [[ConnectOptions alloc] init];
         opts.timeout = 3600;
@@ -1372,6 +1381,7 @@ int MQTTKEEPALIVEINTERVAL;
     
     NSNumber *mqttKeepAliveInterval = [[NSNumber alloc] initWithInt:MQTTKEEPALIVEINTERVAL]; //defult 30 sec
     NSNumber *cleanSesstionBool = [NSNumber numberWithBool:cleanSesstion];
+
     
     
     @try {
@@ -1389,8 +1399,7 @@ int MQTTKEEPALIVEINTERVAL;
         NSString *envJson = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
         
         NSLog(@"envJson : %@", envJson);
-    
-    
+        
         QueueFile * adfEnv = [ [ADFPush sharedADFPush] adfEnv];
         [adfEnv clear];
         [adfEnv add:dataForString(envJson)];
