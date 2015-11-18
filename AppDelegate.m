@@ -55,6 +55,9 @@
         
     QueueFile * jobLogQF = [ [ADFPush sharedADFPush] adfTranLogQF];
     [jobLogQF clear];
+    QueueFile * jobErrQF = [ [ADFPush sharedADFPush] adfErrorLogQF];
+    [jobErrQF clear];
+
     [self reloadLog];
     });
 }

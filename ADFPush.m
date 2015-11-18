@@ -66,7 +66,7 @@ NSData *dataForString(NSString *text)
         result = @"{\"status\": \"fail\",\"code\": 302400,\"message\": \"MQTT 서버에 접속이 실패 되었습니다.\"}";
     }
     
-    [[ADFPush sharedADFPush] addJobLog:@"ConnectCallbacks" param1:@"onFailure" param2:result jsonYn:false data:@"" jogTypeError: true];
+    [[ADFPush sharedADFPush] addJobLog:@"ConnectCallbacks" param1:@"onFailure" param2:@"" jsonYn:true data:result jogTypeError: true];
 
     [[ADFPush sharedADFPush] callBackSelector:tempMethord data:result];
 }
@@ -713,7 +713,7 @@ int MQTTKEEPALIVEINTERVAL;
 - (NSString *)registerToken:(NSString *)token{
     
     // Job Logging
-    [[ADFPush sharedADFPush] addJobLog:@"unsubscribeMQTT" param1:token  param2:@"" jsonYn:false data:@"" jogTypeError: false];
+    [[ADFPush sharedADFPush] addJobLog:@"registerToken" param1:token  param2:@"" jsonYn:false data:@"" jogTypeError: false];
     
      NSString * result = nil;
     
