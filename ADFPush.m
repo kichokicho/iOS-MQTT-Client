@@ -564,12 +564,13 @@ NSTimer *autoSubscribeAgentTimer = nil;
 }
 
 
+/// 자동으로 subscribe 함, 자동 상황이므로 subscribeMQTT(), unsubscribeMQTT()은 추가 로직 생각안함.
 -(void) autoSubscribe {
     NSLog(@"aaaaaaaaa");
     MqttClient *mClient = [[ADFPush sharedADFPush] client];
-    if ([mClient isConnected]) {
+    if (AUTOSUBSCRIBE) {
         NSLog(@"====== AUTOSUBSCRIBE :: %@", (AUTOSUBSCRIBE)? @"true" : @"false");
-        if (AUTOSUBSCRIBE) {
+        if ([mClient isConnected]) {
             [[ADFPush sharedADFPush] subscribeMQTT:@"abcd/test" qos:2];
             [autoSubscribeAgentTimer invalidate];
             autoSubscribeAgentTimer = nil;
@@ -594,6 +595,9 @@ NSTimer *autoSubscribeAgentTimer = nil;
             
         }
         
+    } else {
+        [autoSubscribeAgentTimer invalidate];
+        autoSubscribeAgentTimer = nil;
     }
 }
 
