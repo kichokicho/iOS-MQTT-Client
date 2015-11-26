@@ -15,10 +15,13 @@
 - (void) connectCallBack: (NSString *) data ;
 {
     NSLog(@"test1: %@.\n", data);
+   
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     [appDelegate resultConnectView:data];
     
+    
 }
+
 
 - (void) connectLostCallBack: (NSString *) data
 {
