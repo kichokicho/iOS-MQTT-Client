@@ -570,8 +570,8 @@ NSTimer *autoSubscribeAgentTimer = nil;
     MqttClient *mClient = [[ADFPush sharedADFPush] client];
     if (AUTOSUBSCRIBE) {
         NSLog(@"====== AUTOSUBSCRIBE :: %@", (AUTOSUBSCRIBE)? @"true" : @"false");
-        if ([mClient isConnected]) {
-            [[ADFPush sharedADFPush] subscribeMQTT:@"abcd/test" qos:2];
+        if (MQTTTOKEN != nil && [mClient isConnected]) {
+            [[ADFPush sharedADFPush] subscribeMQTT:[NSString stringWithFormat:@"users/%@",MQTTTOKEN] qos:2];
             [autoSubscribeAgentTimer invalidate];
             autoSubscribeAgentTimer = nil;
             AUTOSUBSCRIBE = false;
@@ -591,7 +591,6 @@ NSTimer *autoSubscribeAgentTimer = nil;
             
             [adfEnv clear];
             [adfEnv add:dataForString(envJson)];
-
             
         }
         
@@ -740,8 +739,16 @@ NSTimer *autoSubscribeAgentTimer = nil;
         // 2015-11-04 개발자 요청으로 isConnected 추가
         MqttClient *mClient = [[ADFPush sharedADFPush] client];
         if ([mClient isConnected]) {
-            NSLog(@"topicFilter=%@", topicFilter);
-            [client unsubscribe:topicFilter invocationContext:topicFilter onCompletion:[[UnsubscribeCallbacks alloc] init]];
+            if ([topicFilter isEqualToString:[NSString stringWithFormat:@"users/%@",MQTTTOKEN]]) {
+                NSString *tempMethord = @"unsubscribeCallBack:";
+                NSString * result = [NSString stringWithFormat:@"{\"status\": \"fail\",\"code\": 306402,\"data\" : {\"topic\" : \"%@\"}, \"message\": \"기본 토픽은 구독해제를 할 수 없습니다.\"}",topicFilter];
+                
+                [[ADFPush sharedADFPush] callBackSelector:tempMethord data:result];
+            } else {
+                NSLog(@"topicFilter=%@", topicFilter);
+                [client unsubscribe:topicFilter invocationContext:topicFilter onCompletion:[[UnsubscribeCallbacks alloc] init]];
+            }
+            
         } else {
             NSString *tempMethord = @"unsubscribeCallBack:";
             NSString * result = [NSString stringWithFormat:@"{\"status\": \"fail\",\"code\": 306401,\"data\" : {\"topic\" : \"%@\"}, \"message\": \"MQTT 연결이 안되어 있습니다.\"}",topicFilter];
@@ -1471,7 +1478,6 @@ NSTimer *autoSubscribeAgentTimer = nil;
         ADFPUSHHOST = adfPushServerUrl;
         CLEANSESSION = cleanSesstion;
         AUTOSUBSCRIBE = true;
-//        MQTTKEEPALIVEINTERVAL = 30;
         
         result = @"{\"status\": \"ok\",\"code\": 312200,\"message\": \"ADFPUSH 환경이 설정되었습니다.\"}";
         
