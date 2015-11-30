@@ -65,8 +65,10 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view.
     
+    [self.view endEditing:TRUE];
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     appDelegate.connectView = self;
+    
     
     NSLog(@"%s:%d", __func__, __LINE__);
 
