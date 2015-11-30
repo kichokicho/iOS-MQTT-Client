@@ -186,6 +186,32 @@ NSData *dataForString(NSString *text)
 
     NSString *tempMethord = @"subscribeCallBack:";
     NSString * result = [NSString stringWithFormat:@"{\"status\": \"ok\",\"code\": 305200,\"data\" : {\"topic\" : \"%@\"}, \"message\": \"구독신청이 완료되었습니다\"}",invocationContext];
+    
+    
+    if ([[ADFPush sharedADFPush] AUTOSUBSCRIBE]) {
+        
+        [[[ADFPush sharedADFPush] autoSubscribeAgentTimer] invalidate];
+        [[ADFPush sharedADFPush] setAutoSubscribeAgentTimer:nil];
+        [[ADFPush sharedADFPush] setAUTOSUBSCRIBE:false];
+        
+         NSLog(@"- autoSubscribeAgentTimer stop");
+        
+        //// adfEnv 수정하여 저장.
+        QueueFile * adfEnv = [ [ADFPush sharedADFPush] adfEnv];
+        NSString *envJson;
+        
+        NSString *adfEnvJson = [NSString stringWithUTF8String:[[adfEnv peek] bytes]];
+        NSData *jData = [adfEnvJson dataUsingEncoding:NSUTF8StringEncoding];
+        NSMutableDictionary *jsonDic = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
+        [jsonDic removeObjectForKey:@"autoSubscribe"];
+        [jsonDic setObject:[NSNumber numberWithBool:NO] forKey:@"autoSubscribe"];
+        
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDic options:NSJSONWritingPrettyPrinted error:nil];
+        envJson = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        
+        [adfEnv clear];
+        [adfEnv add:dataForString(envJson)];
+    }
 
     [[ADFPush sharedADFPush] callBackSelector:tempMethord data:result];
     
@@ -474,9 +500,9 @@ NSString *MQTTTOKEN;
 NSString *ADFPUSHHOST;
 bool CLEANSESSION;
 int MQTTKEEPALIVEINTERVAL;
-bool AUTOSUBSCRIBE;
-
-NSTimer *autoSubscribeAgentTimer = nil;
+//bool AUTOSUBSCRIBE;
+//
+//NSTimer *autoSubscribeAgentTimer = nil;
 
 
 #pragma mark Singleton Methods
@@ -499,6 +525,7 @@ NSTimer *autoSubscribeAgentTimer = nil;
         self.client.callbacks = [[GeneralCallbacks alloc] init];
         self.pushDataDB = [[PushDataBase alloc]init];
         [self.pushDataDB initWithDataBase];
+        self.autoSubscribeAgentTimer = nil;
         
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
                                                              NSUserDomainMask, YES);
@@ -523,8 +550,8 @@ NSTimer *autoSubscribeAgentTimer = nil;
             MQTTTOKEN = json[@"token"];
             ADFPUSHHOST = json[@"adfPushServerUrl"];
             MQTTKEEPALIVEINTERVAL = [json[@"mqttKeepAliveInterval"] intValue];
-            AUTOSUBSCRIBE = [json[@"autoSubscribe"]boolValue];
-            NSLog(@"====== AUTOSUBSCRIBE :: %@", (AUTOSUBSCRIBE)? @"true" : @"false");
+            self.AUTOSUBSCRIBE = [json[@"autoSubscribe"]boolValue];
+            NSLog(@"====== AUTOSUBSCRIBE :: %@", (self.AUTOSUBSCRIBE)? @"true" : @"false");
 //
 //            NSLog(@"====== MQTTHOSTS :: %@, MQTTPORTS :: %@,CLEANSESSION :: %@,MQTTTOKEN :: %@,ADFPUSHHOST :: %@,",MQTTHOSTS, MQTTPORTS,  (CLEANSESSION)? @"true" : @"false", MQTTTOKEN, ADFPUSHHOST);
             
@@ -536,7 +563,7 @@ NSTimer *autoSubscribeAgentTimer = nil;
             ADFPUSHHOST = nil;
             MQTTKEEPALIVEINTERVAL = 30;
             CLEANSESSION = false;
-            AUTOSUBSCRIBE = true;
+            self.AUTOSUBSCRIBE = true;
             NSLog(@"====== CLEANSESSION22222 :: %@", (CLEANSESSION)? @"true" : @"false");
         }
 
@@ -553,8 +580,8 @@ NSTimer *autoSubscribeAgentTimer = nil;
         
         //Job Background loop run
         [NSTimer scheduledTimerWithTimeInterval:JOBINTERVAL target:self selector:@selector(jobAgent) userInfo:nil repeats:YES];
-        //autoSubscribeAgentTimer Background loop run
-        autoSubscribeAgentTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(autoSubscribe) userInfo:nil repeats:YES];
+//        //autoSubscribeAgentTimer Background loop run
+//        self.autoSubscribeAgentTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(autoSubscribe) userInfo:nil repeats:YES];
         
         
         NSLog(@"============   Background start");
@@ -566,37 +593,17 @@ NSTimer *autoSubscribeAgentTimer = nil;
 
 /// 자동으로 subscribe 함, 자동 상황이므로 subscribeMQTT(), unsubscribeMQTT()은 추가 로직 생각안함.
 -(void) autoSubscribe {
-    NSLog(@"aaaaaaaaa");
+    NSLog(@"bbbbbbbb");
     MqttClient *mClient = [[ADFPush sharedADFPush] client];
-    if (AUTOSUBSCRIBE) {
-        NSLog(@"====== AUTOSUBSCRIBE :: %@", (AUTOSUBSCRIBE)? @"true" : @"false");
+    if (self.AUTOSUBSCRIBE) {
+        NSLog(@"====== AUTOSUBSCRIBE :: %@", (self.AUTOSUBSCRIBE)? @"true" : @"false");
         if (MQTTTOKEN != nil && [mClient isConnected]) {
             [[ADFPush sharedADFPush] subscribeMQTT:[NSString stringWithFormat:@"users/%@",MQTTTOKEN] qos:2];
-            [autoSubscribeAgentTimer invalidate];
-            autoSubscribeAgentTimer = nil;
-            AUTOSUBSCRIBE = false;
-            
-            //// adfEnv 수정하여 저장.
-            QueueFile * adfEnv = [ [ADFPush sharedADFPush] adfEnv];
-            NSString *envJson;
-            
-            NSString *adfEnvJson = [NSString stringWithUTF8String:[[self.adfEnv peek] bytes]];
-            NSData *jData = [adfEnvJson dataUsingEncoding:NSUTF8StringEncoding];
-            NSMutableDictionary *jsonDic = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingMutableContainers error:nil];
-            [jsonDic removeObjectForKey:@"autoSubscribe"];
-            [jsonDic setObject:[NSNumber numberWithBool:NO] forKey:@"autoSubscribe"];
-            
-            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDic options:NSJSONWritingPrettyPrinted error:nil];
-            envJson = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-            
-            [adfEnv clear];
-            [adfEnv add:dataForString(envJson)];
-            
         }
         
     } else {
-        [autoSubscribeAgentTimer invalidate];
-        autoSubscribeAgentTimer = nil;
+        [self.autoSubscribeAgentTimer invalidate];
+        self.autoSubscribeAgentTimer = nil;
     }
 }
 
@@ -631,9 +638,15 @@ NSTimer *autoSubscribeAgentTimer = nil;
         ssloti.enableServerCertAuth = FALSE;
         opts.sslProperties = ssloti;
         
+        if (self.AUTOSUBSCRIBE && self.autoSubscribeAgentTimer == nil) {
+            //autoSubscribeAgentTimer Background loop run
+            self.autoSubscribeAgentTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(autoSubscribe) userInfo:nil repeats:YES];
+        }
         
 //        NSLog(@"host=%@, port=%@, clientId=%@, cleanSession=%@", MQTTHOSTS, MQTTPORTS, MQTTTOKEN,  (CLEANSESSION)? @"true" : @"false");
         [client connectWithOptions:opts invocationContext:self onCompletion:[[ConnectCallbacks alloc] init]];
+        
+        
     }
     @catch (NSException *exception) {
         
@@ -823,7 +836,7 @@ NSTimer *autoSubscribeAgentTimer = nil;
             [adfEnv clear];
             [adfEnv add:dataForString(envJson)];
             MQTTTOKEN = token;
-            AUTOSUBSCRIBE = true;
+            self.AUTOSUBSCRIBE = true;
             
             result = @"{\"status\": \"ok\",\"code\": 301200,\"message\": \"토큰등록이 완료되었습니다\"}";
             
@@ -834,10 +847,13 @@ NSTimer *autoSubscribeAgentTimer = nil;
                 [[ADFPush sharedADFPush] disconnectMQTT:2];
             }
             
-            if (autoSubscribeAgentTimer == nil) {
-                //autoSubscribeAgentTimer Background loop run
-                autoSubscribeAgentTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(autoSubscribe) userInfo:nil repeats:YES];
-            }
+//            [[[ADFPush sharedADFPush] autoSubscribeAgentTimer] invalidate];
+//            [[ADFPush sharedADFPush] setAutoSubscribeAgentTimer:nil];
+            
+//            if (self.autoSubscribeAgentTimer == nil) {
+//                //autoSubscribeAgentTimer Background loop run
+//                self.autoSubscribeAgentTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(autoSubscribe) userInfo:nil repeats:YES];
+//            }
 
             
         }
@@ -1482,7 +1498,7 @@ NSTimer *autoSubscribeAgentTimer = nil;
         MQTTTOKEN = token;
         ADFPUSHHOST = adfPushServerUrl;
         CLEANSESSION = cleanSesstion;
-        AUTOSUBSCRIBE = true;
+        self.AUTOSUBSCRIBE = true;
         
         result = @"{\"status\": \"ok\",\"code\": 312200,\"message\": \"ADFPUSH 환경이 설정되었습니다.\"}";
         
@@ -1492,10 +1508,10 @@ NSTimer *autoSubscribeAgentTimer = nil;
             [[ADFPush sharedADFPush] disconnectMQTT:2];
         }
         
-        if (autoSubscribeAgentTimer == nil) {
-            //autoSubscribeAgentTimer Background loop run
-            autoSubscribeAgentTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(autoSubscribe) userInfo:nil repeats:YES];
-        }
+//        if (self.autoSubscribeAgentTimer == nil) {
+//            //autoSubscribeAgentTimer Background loop run
+//            self.autoSubscribeAgentTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(autoSubscribe) userInfo:nil repeats:YES];
+//        }
         
         
     }
